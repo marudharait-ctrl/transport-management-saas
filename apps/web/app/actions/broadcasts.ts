@@ -1,6 +1,7 @@
 "use server";
 
 import { execFile } from "node:child_process";
+import path from "node:path";
 import { promisify } from "node:util";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
@@ -27,8 +28,8 @@ function openclawInvocation(args: string[]) {
 
   if (process.platform === "win32") {
     return {
-      command: "cmd.exe",
-      args: ["/d", "/s", "/c", "openclaw.cmd", ...args]
+      command: "node",
+      args: [path.join(process.env.APPDATA ?? "", "npm", "node_modules", "openclaw", "openclaw.mjs"), ...args]
     };
   }
 
