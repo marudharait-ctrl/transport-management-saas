@@ -239,14 +239,16 @@ export default async function Home() {
                             <span>
                               {quoteRequest.transporter.name} - {quoteRequest.status}
                             </span>
-                            {quoteRequest.status === "SENT" ? null : (
-                              <form action={sendQuoteRequest}>
-                                <input type="hidden" name="quoteRequestId" value={quoteRequest.id} />
-                                <button className="button" type="submit">
-                                  Send WhatsApp
-                                </button>
-                              </form>
-                            )}
+                            <form action={sendQuoteRequest}>
+                              <input type="hidden" name="quoteRequestId" value={quoteRequest.id} />
+                              <button className="button" type="submit">
+                                {quoteRequest.status === "SENT"
+                                  ? "Resend WhatsApp"
+                                  : quoteRequest.status === "FAILED"
+                                    ? "Retry WhatsApp"
+                                    : "Send WhatsApp"}
+                              </button>
+                            </form>
                           </div>
                         ))}
                       </div>

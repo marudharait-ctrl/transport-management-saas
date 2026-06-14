@@ -63,7 +63,7 @@ export async function sendQuoteRequest(formData: FormData) {
     }
   });
 
-  if (!quoteRequest || quoteRequest.status === "SENT") {
+  if (!quoteRequest) {
     return;
   }
 
@@ -131,6 +131,7 @@ export async function sendQuoteRequest(formData: FormData) {
             channel: "whatsapp",
             transporter: quoteRequest.transporter.name,
             primaryPhone: quoteRequest.transporter.primaryPhone,
+            previousStatus: quoteRequest.status,
             cliResult: stdout ? parseJsonOutput(stdout) : null
           }
         }
