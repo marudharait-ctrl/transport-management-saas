@@ -55,7 +55,8 @@ export async function sendQuoteRequest(formData: FormData) {
       transporter: true,
       request: {
         include: {
-          company: true
+          company: true,
+          requestedBy: true
         }
       }
     }
@@ -68,11 +69,16 @@ export async function sendQuoteRequest(formData: FormData) {
   const message = buildQuoteRequestMessage({
     companyName: quoteRequest.request.company.name,
     requestNumber: quoteRequest.request.requestNumber,
+    requestDate: quoteRequest.request.createdAt,
+    requestedByName: quoteRequest.request.requestedBy.name,
     title: quoteRequest.request.title,
     loadType: quoteRequest.request.loadType,
+    status: quoteRequest.request.status,
     pickupCity: quoteRequest.request.pickupCity,
+    pickupState: quoteRequest.request.pickupState,
     pickupPincode: quoteRequest.request.pickupPincode,
     dropCity: quoteRequest.request.dropCity,
+    dropState: quoteRequest.request.dropState,
     dropPincode: quoteRequest.request.dropPincode,
     material: quoteRequest.request.material,
     quantity: quoteRequest.request.quantity,

@@ -34,76 +34,93 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
 
   return (
     <form className="request-form" action={formAction}>
-      <label>
-        Request date
-        <input value={today} readOnly />
-      </label>
+      <section className="form-section form-section-first" aria-labelledby="request-basics">
+        <div className="section-heading">
+          <h3 id="request-basics">Request</h3>
+          <span>{today}</span>
+        </div>
 
-      <label className="wide">
-        Request title
-        <input name="title" defaultValue="Transport request" required />
-      </label>
+        <label className="wide">
+          Title
+          <input name="title" defaultValue="Transport request" required />
+        </label>
 
-      <label>
-        Load type
-        <select name="loadType" defaultValue="FULL_TRUCK" required>
-          <option value="FULL_TRUCK">Full truck</option>
-          <option value="PARTIAL_LOAD">Partial load</option>
-          <option value="SIZE_SPECIFIC">Size specific truck</option>
-          <option value="MULTI_LEG">Multi-leg movement</option>
-        </select>
-      </label>
+        <label>
+          Load type
+          <select name="loadType" defaultValue="FULL_TRUCK" required>
+            <option value="FULL_TRUCK">Full truck</option>
+            <option value="PARTIAL_LOAD">Partial load</option>
+            <option value="SIZE_SPECIFIC">Size specific truck</option>
+            <option value="MULTI_LEG">Multi-leg movement</option>
+          </select>
+        </label>
 
-      <label>
-        Dispatch date
-        <input name="pickupDate" type="date" defaultValue={dispatchDate} required />
-      </label>
+        <label>
+          Dispatch date
+          <input name="pickupDate" type="date" defaultValue={dispatchDate} required />
+        </label>
 
-      <label>
-        Target delivery
-        <input name="targetDeliveryDate" type="date" defaultValue={targetDeliveryDate} />
-      </label>
+        <label>
+          Target delivery
+          <input name="targetDeliveryDate" type="date" defaultValue={targetDeliveryDate} />
+        </label>
+      </section>
 
-      <label>
-        Pickup city
-        <input name="pickupCity" defaultValue="Jodhpur" required />
-      </label>
+      <section className="form-section" aria-labelledby="route-details">
+        <div className="section-heading wide">
+          <h3 id="route-details">Route</h3>
+        </div>
 
-      <label>
-        Pickup pincode
-        <input name="pickupPincode" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" placeholder="342001" required />
-      </label>
+        <label>
+          Pickup city
+          <input name="pickupCity" defaultValue="Jodhpur" required />
+        </label>
 
-      <label>
-        Drop city
-        <input name="dropCity" placeholder="Noida" required />
-      </label>
+        <label>
+          Pickup pincode
+          <input name="pickupPincode" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" placeholder="342001" required />
+        </label>
 
-      <label>
-        Drop pincode
-        <input name="dropPincode" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" placeholder="201301" required />
-      </label>
+        <label>
+          Drop city
+          <input name="dropCity" placeholder="Noida" required />
+        </label>
 
-      <label>
-        Material
-        <input name="material" defaultValue="PP woven bags" required />
-      </label>
+        <label>
+          Drop pincode
+          <input name="dropPincode" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" placeholder="201301" required />
+        </label>
+      </section>
 
-      <label>
-        Quantity
-        <input name="quantity" placeholder="16 MT" required />
-      </label>
+      <section className="form-section" aria-labelledby="load-details">
+        <div className="section-heading wide">
+          <h3 id="load-details">Load</h3>
+        </div>
 
-      <label className="wide">
-        Truck requirement
-        <input name="truckRequirement" defaultValue="32 ft container, tarpaulin required" required />
-      </label>
+        <label>
+          Material
+          <input name="material" defaultValue="PP woven bags" required />
+        </label>
 
-      <fieldset className="wide transporter-select">
-        <legend>Prepare WhatsApp broadcast</legend>
-        <p className="muted">
-          Select transporters who should receive this quote request. This prepares the broadcast list; actual WhatsApp send can be enabled next.
-        </p>
+        <label>
+          Quantity
+          <input name="quantity" placeholder="16 MT" required />
+        </label>
+
+        <label className="wide">
+          Truck requirement
+          <input name="truckRequirement" defaultValue="32 ft container, tarpaulin required" required />
+        </label>
+
+        <label className="wide">
+          Notes
+          <textarea name="notes" rows={3} placeholder="Urgency, loading constraints, special instructions" />
+        </label>
+      </section>
+
+      <fieldset className="form-section transporter-select">
+        <legend className="section-heading wide">Vendors</legend>
+
         <div className="transporter-options">
           {transporters.length === 0 ? (
             <div className="empty-state">
@@ -125,11 +142,6 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
           ))}
         </div>
       </fieldset>
-
-      <label className="wide">
-        Notes
-        <textarea name="notes" rows={3} placeholder="Urgency, loading constraints, special instructions" />
-      </label>
 
       {state.error ? <p className="form-error wide">{state.error}</p> : null}
 
