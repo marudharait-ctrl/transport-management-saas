@@ -31,6 +31,18 @@ Detailed requirements live in [docs/requirements/marudara-polypack.md](docs/requ
 - `SOUL.md`, `IDENTITY.md`, `MEMORY.md` - Garud workspace identity and operating memory.
 - `TOOLS.md` - local commands, setup notes, deployment notes, and operational references.
 
+## Architecture Direction
+
+The MVP should be a tenant-isolated SaaS application with a shared transporter network:
+
+- Company-side data is isolated by tenant/company.
+- Transporter identity can be global across the platform.
+- Company-to-transporter relationships are company-specific.
+- Transporters can interact through WhatsApp first, with web quote links/forms for richer input.
+- WhatsApp, web UI, and later email should feed the same core workflow and database.
+
+See [docs/decisions/0001-mvp-architecture.md](docs/decisions/0001-mvp-architecture.md).
+
 ## Collaboration
 
 Naresh, Mahesh Bhai, and Suresh Purohit are collaborators for this transport-management SaaS effort. Requirements and decisions shared through WhatsApp should be captured back into this repository when they affect the product.
