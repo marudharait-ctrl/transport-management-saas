@@ -42,11 +42,14 @@ The MVP should be an AI-first, tenant-isolated SaaS application with a shared tr
 - WhatsApp, web UI, and later email should feed the same core workflow and database.
 - AI agents should parse requirements, ask clarifying questions, collect and normalize quotes, compare options, recommend approvals, follow up on execution, and summarize audit trails.
 - High-impact business actions such as quote approval, awarding loads, and financial record changes should require human confirmation in the MVP.
+- The core workflow must also work without AI: manual request creation, quote entry, comparison, approval, shipment tracking, documents, and audit.
+- Expose MCP through controlled tools/resources so agents can interact with the SaaS without bypassing tenant isolation, permissions, workflow rules, or audit logging.
 
 See:
 
 - [docs/decisions/0001-mvp-architecture.md](docs/decisions/0001-mvp-architecture.md)
 - [docs/decisions/0002-ai-first-agentic-architecture.md](docs/decisions/0002-ai-first-agentic-architecture.md)
+- [docs/decisions/0003-ai-optional-core-and-mcp.md](docs/decisions/0003-ai-optional-core-and-mcp.md)
 
 ## Collaboration
 
