@@ -116,6 +116,14 @@ The seed password comes from `AUTH_SEED_PASSWORD` in local `.env`. Admin users c
 /admin/users
 ```
 
+Authorized users can create transport requests at:
+
+```text
+/requests/new
+```
+
+Request creation writes a `TransportRequest` row and a matching `transport_request.created` audit event.
+
 Start PostgreSQL:
 
 ```powershell

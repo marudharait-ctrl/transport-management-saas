@@ -78,6 +78,8 @@ The first MVP screen is a Marudara Polypack transport desk with seeded company u
 
 The public development app requires login. Seeded users are authorized company users only, and admin users can manage access from `/admin/users`.
 
+Authorized users can create transport requests from `/requests/new`. New requests are stored with a request number, `OPEN` status, and an audit event.
+
 ## Collaboration
 
 Naresh, Mahesh Bhai, and Suresh Purohit are collaborators for this transport-management SaaS effort. Requirements and decisions shared through WhatsApp should be captured back into this repository when they affect the product.

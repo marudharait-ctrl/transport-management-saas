@@ -134,9 +134,9 @@ export default async function Home() {
                 Users
               </Link>
             ) : null}
-            <a className="button primary" href="#requests">
+            <Link className="button primary" href="/requests/new">
               New request
-            </a>
+            </Link>
             <a className="button" href="#quotes">
               Compare quotes
             </a>

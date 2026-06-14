@@ -308,13 +308,18 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
   padding: 10px 11px;
+}
+
+textarea {
+  resize: vertical;
 }
 
 .form-error,
@@ -364,6 +369,23 @@ select {
   flex-wrap: wrap;
 }
 
+.request-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.request-form .wide,
+.form-actions {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 900px) {
   .topbar {
     align-items: flex-start;
@@ -380,7 +402,8 @@ select {
 
   .grid,
   .details,
-  .table-row {
+  .table-row,
+  .request-form {
     grid-template-columns: 1fr;
     display: grid;
   }
