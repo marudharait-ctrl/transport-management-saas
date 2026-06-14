@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CompanyUserRole {
+  ADMIN
+  REQUESTER
+  APPROVER
+  ACCOUNTS
+  SUPPORT
+}
+
+enum RequestStatus {
+  DRAFT
+  OPEN
+  QUOTED
+  APPROVED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum LoadType {
+  FULL_TRUCK
+  PARTIAL_LOAD
+  SIZE_SPECIFIC
+  MULTI_LEG
+}
+
+enum QuoteStatus {
+  RECEIVED
+  SHORTLISTED
+  APPROVED
+  REJECTED
+}
+
+enum ShipmentStatus {
+  PLANNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  INVOICED
+}
+
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  city         String
+  state        String
+  country      String        @default("India")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  users        CompanyUser[]
+  transporters CompanyTransporter[]
+  requests     TransportRequest[]
+  auditEvents  AuditEvent[]
+}
+
+model CompanyUser {
+  id        String          @id @default(cuid())
+  companyId String
+  name      String
+  email     String
+  role      CompanyUserRole
+  createdAt DateTime        @default(now())
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requests  TransportRequest[] @relation("RequestedBy")
+  approvals TransportRequest[] @relation("ApprovedBy")
+
+  @@unique([companyId, email])
+  @@index([companyId])
+}
+
+model Transporter {
+  id           String        @id @default(cuid())
+  name         String
+  primaryPhone String        @unique
+  email        String?
+  baseCity     String
+  baseState    String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  companies    CompanyTransporter[]
+  quotes       Quote[]
+  shipments    Shipment[]
+}
+
+model CompanyTransporter {
+  id            String      @id @default(cuid())
+  companyId     String
+  transporterId String
+  displayName   String
+  trustRating   Int         @default(3)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  transporter   Transporter @relation(fields: [transporterId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, transporterId])
+  @@index([companyId])
+  @@index([transporterId])
+}
+
+model TransportRequest {
+  id              String        @id @default(cuid())
+  companyId       String
+  requestedById   String
+  approvedById    String?
+  requestNumber   String
+  title           String
+  loadType        LoadType
+  status          RequestStatus @default(DRAFT)
+  pickupCity      String
+  pickupState     String
+  dropCity        String
+  dropState       String
+  material        String
+  quantity        String
+  truckRequirement String
+  pickupDate      DateTime
+  targetDeliveryDate DateTime?
+  notes           String?
+  aiSummary       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy     CompanyUser   @relation("RequestedBy", fields: [requestedById], references: [id])
+  approvedBy      CompanyUser?  @relation("ApprovedBy", fields: [approvedById], references: [id])
+  quotes          Quote[]
+  shipment        Shipment?
+  auditEvents     AuditEvent[]
+
+  @@unique([companyId, requestNumber])
+  @@index([companyId, status])
+}
+
+model Quote {
+  id                  String          @id @default(cuid())
+  companyId           String
+  requestId           String
+  transporterId       String
+  amountPaise         Int
+  currency            String          @default("INR")
+  truckType           String
+  availabilityDate    DateTime
+  estimatedTransitDays Int
+  paymentTerms        String
+  status              QuoteStatus     @default(RECEIVED)
+  receivedVia         String
+  notes               String?
+  aiExtracted         Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  request             TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter         Transporter     @relation(fields: [transporterId], references: [id])
+
+  @@index([companyId, requestId])
+  @@index([transporterId])
+}
+
+model Shipment {
+  id               String         @id @default(cuid())
+  companyId        String
+  requestId        String         @unique
+  transporterId    String
+  status           ShipmentStatus @default(PLANNED)
+  vehicleNumber    String?
+  driverName       String?
+  driverPhone      String?
+  pickupAt         DateTime?
+  deliveredAt      DateTime?
+  invoiceNumber    String?
+  invoiceAmountPaise Int?
+  podDocumentUrl   String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  request          TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter      Transporter    @relation(fields: [transporterId], references: [id])
+
+  @@index([companyId, status])
+}
+
+model AuditEvent {
+  id          String    @id @default(cuid())
+  companyId   String
+  requestId   String?
+  actorType   String
+  actorName   String
+  action      String
+  details     Json
+  createdAt   DateTime  @default(now())
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  request     TransportRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([requestId])
+}

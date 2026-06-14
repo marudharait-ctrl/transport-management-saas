@@ -41,6 +41,40 @@ postgresql://postgres@localhost:5432/transport_management_dev
 
 This local install currently uses trust authentication for local connections, as initialized by Scoop/PostgreSQL. It is suitable for local development only.
 
+The repository includes `.env.example` with the same local development URL. The local `.env` file is ignored by git.
+
+## MVP App
+
+The first runnable MVP is a pnpm monorepo:
+
+- `apps/web` - Next.js web app.
+- `prisma` - database schema, migrations, and seed data.
+
+Common commands:
+
+```powershell
+pnpm install
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+Verification commands:
+
+```powershell
+pnpm typecheck
+pnpm build
+```
+
+Seed data currently creates:
+
+- Marudara Polypack company tenant.
+- Naresh, Mahesh Bhai, Suresh Purohit, and Accounts Team company users.
+- Four shared transporters.
+- Three transport requests covering full-truck, partial-load, and multi-leg workflows.
+- Four quotes, one planned shipment, and five audit events.
+
 Start PostgreSQL:
 
 ```powershell

@@ -26,6 +26,8 @@ Detailed requirements live in [docs/requirements/marudara-polypack.md](docs/requ
 
 ## Repository Structure
 
+- `apps/web/` - Next.js SaaS web app for the company-side MVP.
+- `prisma/` - PostgreSQL schema, migrations, and local seed data.
 - `docs/requirements/` - customer and product requirements.
 - `docs/decisions/` - major product and architecture decisions.
 - `docs/setup/` - local development and environment setup notes.
@@ -62,6 +64,17 @@ Local development database:
 ```text
 postgresql://postgres@localhost:5432/transport_management_dev
 ```
+
+Useful commands:
+
+```bash
+pnpm install
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+The first MVP screen is a Marudara Polypack transport desk with seeded company users, transporters, transport requests, quotes, one planned shipment, and audit events.
 
 ## Collaboration
 
