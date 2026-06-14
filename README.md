@@ -33,15 +33,20 @@ Detailed requirements live in [docs/requirements/marudara-polypack.md](docs/requ
 
 ## Architecture Direction
 
-The MVP should be a tenant-isolated SaaS application with a shared transporter network:
+The MVP should be an AI-first, tenant-isolated SaaS application with a shared transporter network:
 
 - Company-side data is isolated by tenant/company.
 - Transporter identity can be global across the platform.
 - Company-to-transporter relationships are company-specific.
 - Transporters can interact through WhatsApp first, with web quote links/forms for richer input.
 - WhatsApp, web UI, and later email should feed the same core workflow and database.
+- AI agents should parse requirements, ask clarifying questions, collect and normalize quotes, compare options, recommend approvals, follow up on execution, and summarize audit trails.
+- High-impact business actions such as quote approval, awarding loads, and financial record changes should require human confirmation in the MVP.
 
-See [docs/decisions/0001-mvp-architecture.md](docs/decisions/0001-mvp-architecture.md).
+See:
+
+- [docs/decisions/0001-mvp-architecture.md](docs/decisions/0001-mvp-architecture.md)
+- [docs/decisions/0002-ai-first-agentic-architecture.md](docs/decisions/0002-ai-first-agentic-architecture.md)
 
 ## Collaboration
 
