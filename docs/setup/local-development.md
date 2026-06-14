@@ -73,6 +73,7 @@ The local MVP can be exposed through the existing Cloudflare tunnel:
 
 ```text
 https://task.iananas.eu -> taskapp tunnel -> http://127.0.0.1:3001
+https://tasks.iananas.eu -> taskapp tunnel -> http://127.0.0.1:3001
 ```
 
 Local cloudflared config:
