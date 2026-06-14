@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createTransportRequest, type RequestFormState } from "@/app/actions/requests";
+import { CalendarDays, MapPin, Package, Send, Truck } from "lucide-react";
 
 const initialState: RequestFormState = {};
 
@@ -36,7 +37,10 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
     <form className="request-form" action={formAction}>
       <section className="form-section form-section-first" aria-labelledby="request-basics">
         <div className="section-heading">
-          <h3 id="request-basics">Request</h3>
+          <h3 id="request-basics">
+            <CalendarDays size={17} aria-hidden="true" />
+            Request
+          </h3>
           <span>{today}</span>
         </div>
 
@@ -68,7 +72,10 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
 
       <section className="form-section" aria-labelledby="route-details">
         <div className="section-heading wide">
-          <h3 id="route-details">Route</h3>
+          <h3 id="route-details">
+            <MapPin size={17} aria-hidden="true" />
+            Route
+          </h3>
         </div>
 
         <label>
@@ -94,7 +101,10 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
 
       <section className="form-section" aria-labelledby="load-details">
         <div className="section-heading wide">
-          <h3 id="load-details">Load</h3>
+          <h3 id="load-details">
+            <Package size={17} aria-hidden="true" />
+            Load
+          </h3>
         </div>
 
         <label>
@@ -119,7 +129,12 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
       </section>
 
       <fieldset className="form-section transporter-select">
-        <legend className="section-heading wide">Vendors</legend>
+        <legend className="section-heading wide">
+          <span className="legend-title">
+            <Truck size={17} aria-hidden="true" />
+            Vendors
+          </span>
+        </legend>
 
         <div className="transporter-options">
           {transporters.length === 0 ? (
@@ -147,6 +162,7 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
 
       <div className="form-actions wide">
         <button className="button primary" type="submit" disabled={isPending}>
+          <Send size={16} aria-hidden="true" />
           {isPending ? "Creating..." : "Create request"}
         </button>
       </div>

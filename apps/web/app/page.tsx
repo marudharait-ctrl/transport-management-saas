@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { sendQuoteRequest } from "@/app/actions/broadcasts";
 import { logout } from "@/app/actions/auth";
 import { requireUser } from "@/lib/auth";
+import { BarChart3, LogOut, MessageCircle, Plus, RefreshCw, Send, Truck, Users } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -136,31 +137,35 @@ export default async function Home() {
       <div className="shell">
         <header className="topbar">
           <div className="brand">
-            <h1>{dashboardCompany.name} Transport Desk</h1>
-            <p>
-              Tenant-isolated company workspace, shared transporter network, AI-assisted but manually operable.
-            </p>
+            <span className="eyebrow">Transport desk</span>
+            <h1>{dashboardCompany.name}</h1>
+            <p>Requests, vendor broadcasts, quote comparison, and shipment planning in one workspace.</p>
           </div>
           <div className="actions">
             <span className="user-pill">{currentUser.name}</span>
             {currentUser.role === "ADMIN" ? (
               <>
                 <Link className="button" href="/admin/vendors">
+                  <Truck size={16} aria-hidden="true" />
                   Vendors
                 </Link>
                 <Link className="button" href="/admin/users">
+                  <Users size={16} aria-hidden="true" />
                   Users
                 </Link>
               </>
             ) : null}
             <Link className="button primary" href="/requests/new">
+              <Plus size={16} aria-hidden="true" />
               New request
             </Link>
             <a className="button" href="#quotes">
+              <BarChart3 size={16} aria-hidden="true" />
               Compare quotes
             </a>
             <form action={logout}>
-              <button className="button" type="submit">
+              <button className="button icon-button-text" type="submit">
+                <LogOut size={16} aria-hidden="true" />
                 Sign out
               </button>
             </form>
@@ -169,18 +174,30 @@ export default async function Home() {
 
         <section className="metrics" aria-label="MVP metrics">
           <div className="metric">
+            <div className="metric-icon">
+              <Truck size={18} aria-hidden="true" />
+            </div>
             <span>Active requests</span>
             <strong>{openRequests.length}</strong>
           </div>
           <div className="metric">
+            <div className="metric-icon">
+              <Users size={18} aria-hidden="true" />
+            </div>
             <span>Transporters</span>
             <strong>{dashboardCompany.transporters.length}</strong>
           </div>
           <div className="metric">
+            <div className="metric-icon">
+              <MessageCircle size={18} aria-hidden="true" />
+            </div>
             <span>Quotes received</span>
             <strong>{quoteCount}</strong>
           </div>
           <div className="metric">
+            <div className="metric-icon">
+              <BarChart3 size={18} aria-hidden="true" />
+            </div>
             <span>Approved load</span>
             <strong>{approvedRequest ? "1" : "0"}</strong>
           </div>
@@ -188,7 +205,13 @@ export default async function Home() {
 
         <div className="grid">
           <section className="panel" id="requests">
-            <h2>Transport Requests</h2>
+            <div className="panel-title">
+              <h2>Transport Requests</h2>
+              <Link className="button compact" href="/requests/new">
+                <Plus size={15} aria-hidden="true" />
+                New
+              </Link>
+            </div>
             <div className="request-list">
               {dashboardCompany.requests.length === 0 ? (
                 <div className="empty-state">
@@ -243,10 +266,25 @@ export default async function Home() {
                               <input type="hidden" name="quoteRequestId" value={quoteRequest.id} />
                               <button className="button" type="submit">
                                 {quoteRequest.status === "SENT"
-                                  ? "Resend WhatsApp"
+                                  ? (
+                                      <>
+                                        <RefreshCw size={15} aria-hidden="true" />
+                                        Resend WhatsApp
+                                      </>
+                                    )
                                   : quoteRequest.status === "FAILED"
-                                    ? "Retry WhatsApp"
-                                    : "Send WhatsApp"}
+                                    ? (
+                                        <>
+                                          <RefreshCw size={15} aria-hidden="true" />
+                                          Retry WhatsApp
+                                        </>
+                                      )
+                                    : (
+                                        <>
+                                          <Send size={15} aria-hidden="true" />
+                                          Send WhatsApp
+                                        </>
+                                      )}
                               </button>
                             </form>
                           </div>
@@ -267,7 +305,10 @@ export default async function Home() {
           </section>
 
           <aside className="panel" id="quotes">
-            <h2>Quote Board</h2>
+            <div className="panel-title">
+              <h2>Quote Board</h2>
+              <span className="count-pill">{quoteCount}</span>
+            </div>
             <div className="quotes">
               {quoteCount === 0 ? (
                 <div className="empty-state">
