@@ -91,6 +91,7 @@ model Transporter {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   companies    CompanyTransporter[]
+  quoteRequests QuoteRequest[]
   quotes       Quote[]
   shipments    Shipment[]
 }
@@ -122,8 +123,10 @@ model TransportRequest {
   status          RequestStatus @default(DRAFT)
   pickupCity      String
   pickupState     String
+  pickupPincode   String?
   dropCity        String
   dropState       String
+  dropPincode     String?
   material        String
   quantity        String
   truckRequirement String
@@ -137,11 +140,30 @@ model TransportRequest {
   requestedBy     CompanyUser   @relation("RequestedBy", fields: [requestedById], references: [id])
   approvedBy      CompanyUser?  @relation("ApprovedBy", fields: [approvedById], references: [id])
   quotes          Quote[]
+  quoteRequests   QuoteRequest[]
   shipment        Shipment?
   auditEvents     AuditEvent[]
 
   @@unique([companyId, requestNumber])
   @@index([companyId, status])
+}
+
+model QuoteRequest {
+  id            String           @id @default(cuid())
+  companyId     String
+  requestId     String
+  transporterId String
+  channel       String           @default("WHATSAPP")
+  status        String           @default("READY")
+  message       String
+  sentAt        DateTime?
+  createdAt     DateTime         @default(now())
+  request       TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter   Transporter      @relation(fields: [transporterId], references: [id])
+
+  @@unique([requestId, transporterId])
+  @@index([companyId, requestId])
+  @@index([transporterId])
 }
 
 model Quote {

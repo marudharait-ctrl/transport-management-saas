@@ -54,6 +54,7 @@ See:
 - [docs/decisions/0002-ai-first-agentic-architecture.md](docs/decisions/0002-ai-first-agentic-architecture.md)
 - [docs/decisions/0003-ai-optional-core-and-mcp.md](docs/decisions/0003-ai-optional-core-and-mcp.md)
 - [docs/decisions/0004-mvp-technology-stack.md](docs/decisions/0004-mvp-technology-stack.md)
+- [docs/decisions/0005-transporter-broadcast-mvp.md](docs/decisions/0005-transporter-broadcast-mvp.md)
 
 ## Local Setup
 
@@ -78,7 +79,9 @@ The first MVP screen is a Marudara Polypack transport desk with seeded company u
 
 The public development app requires login. Seeded users are authorized company users only, and admin users can manage access from `/admin/users`.
 
-Authorized users can create transport requests from `/requests/new`. New requests are stored with a request number, `OPEN` status, and an audit event.
+Authorized users can create transport requests from `/requests/new`. The intake form is mobile-first, defaults request dates for quick entry, asks for city and pincode instead of state, and lets the user select known transporters for a prepared WhatsApp quote broadcast.
+
+New requests are stored with a request number, `OPEN` status, an audit event, optional pincode fields, and `QuoteRequest` records for selected transporters. These records prepare the WhatsApp broadcast list; actual outbound WhatsApp sending is a later explicit action.
 
 ## Collaboration
 

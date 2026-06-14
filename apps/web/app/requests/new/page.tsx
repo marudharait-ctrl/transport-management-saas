@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { NewRequestForm } from "./NewRequestForm";
 
 export default async function NewRequestPage() {
   const user = await requireUser();
+  const transporters = await prisma.companyTransporter.findMany({
+    where: { companyId: user.companyId },
+    orderBy: [{ trustRating: "desc" }, { displayName: "asc" }],
+    include: { transporter: true }
+  });
 
   return (
     <main className="page">
@@ -22,7 +28,15 @@ export default async function NewRequestPage() {
 
         <section className="panel">
           <h2>Request Details</h2>
-          <NewRequestForm />
+          <NewRequestForm
+            transporters={transporters.map((item) => ({
+              id: item.transporterId,
+              name: item.displayName,
+              phone: item.transporter.primaryPhone,
+              baseCity: item.transporter.baseCity,
+              trustRating: item.trustRating
+            }))}
+          />
         </section>
       </div>
     </main>

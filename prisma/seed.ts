@@ -28,6 +28,7 @@ async function main() {
   await prisma.auditEvent.deleteMany();
   await prisma.shipment.deleteMany();
   await prisma.quote.deleteMany();
+  await prisma.quoteRequest.deleteMany();
   await prisma.transportRequest.deleteMany();
   await prisma.companyTransporter.deleteMany();
   await prisma.companyUser.deleteMany();
@@ -150,8 +151,10 @@ async function main() {
       status: "APPROVED",
       pickupCity: "Jodhpur",
       pickupState: "Rajasthan",
+      pickupPincode: "342001",
       dropCity: "Noida",
       dropState: "Uttar Pradesh",
+      dropPincode: "201301",
       material: "PP woven bags",
       quantity: "16 MT",
       truckRequirement: "32 ft single axle container",
@@ -172,8 +175,10 @@ async function main() {
       status: "QUOTED",
       pickupCity: "Jodhpur",
       pickupState: "Rajasthan",
+      pickupPincode: "342001",
       dropCity: "Jaipur",
       dropState: "Rajasthan",
+      dropPincode: "302001",
       material: "Packaging rolls",
       quantity: "4 MT",
       truckRequirement: "Shared vehicle acceptable, tarpaulin required",
@@ -194,8 +199,10 @@ async function main() {
       status: "OPEN",
       pickupCity: "Jodhpur",
       pickupState: "Rajasthan",
+      pickupPincode: "342001",
       dropCity: "Ahmedabad",
       dropState: "Gujarat",
+      dropPincode: "380001",
       material: "Sample rolls and documents",
       quantity: "800 kg",
       truckRequirement: "Small vehicle with Pali stopover",

@@ -23,6 +23,13 @@ type DashboardQuote = {
   transporter: DashboardTransporter;
 };
 
+type DashboardQuoteRequest = {
+  id: string;
+  status: string;
+  channel: string;
+  transporter: DashboardTransporter;
+};
+
 type DashboardRequest = {
   id: string;
   requestNumber: string;
@@ -35,6 +42,7 @@ type DashboardRequest = {
   pickupDate: Date;
   aiSummary: string | null;
   requestedBy: DashboardUser;
+  quoteRequests: DashboardQuoteRequest[];
   quotes: DashboardQuote[];
   shipment: {
     transporter: DashboardTransporter;
@@ -85,6 +93,10 @@ export default async function Home() {
           quotes: {
             include: { transporter: true },
             orderBy: { amountPaise: "asc" }
+          },
+          quoteRequests: {
+            include: { transporter: true },
+            orderBy: { createdAt: "asc" }
           },
           shipment: { include: { transporter: true } }
         }
@@ -203,6 +215,13 @@ export default async function Home() {
                   </dl>
 
                   {request.aiSummary ? <p className="muted">{request.aiSummary}</p> : null}
+
+                  {request.quoteRequests.length > 0 ? (
+                    <div className="broadcast-summary">
+                      <strong>WhatsApp broadcast ready:</strong>{" "}
+                      {request.quoteRequests.map((quoteRequest) => quoteRequest.transporter.name).join(", ")}
+                    </div>
+                  ) : null}
 
                   {request.shipment ? (
                     <p className="muted">

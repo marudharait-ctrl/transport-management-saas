@@ -39,6 +39,12 @@ textarea {
   font: inherit;
 }
 
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .page {
   min-height: 100vh;
 }
@@ -322,6 +328,10 @@ textarea {
   resize: vertical;
 }
 
+input[readonly] {
+  background: var(--surface-muted);
+}
+
 .form-error,
 .form-success {
   margin: 0;
@@ -371,7 +381,7 @@ textarea {
 
 .request-form {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 14px;
 }
@@ -384,6 +394,61 @@ textarea {
 .form-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.transporter-select {
+  display: grid;
+  gap: 10px;
+}
+
+.transporter-select legend {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.transporter-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.transporter-option {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.transporter-option input {
+  width: 18px;
+  margin: 2px 0 0;
+}
+
+.transporter-option strong,
+.transporter-option small {
+  display: block;
+}
+
+.transporter-option small {
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.broadcast-summary {
+  margin-top: 10px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 9px 10px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 @media (max-width: 900px) {
@@ -403,8 +468,29 @@ textarea {
   .grid,
   .details,
   .table-row,
-  .request-form {
+  .request-form,
+  .transporter-options {
     grid-template-columns: 1fr;
     display: grid;
+  }
+
+  .shell {
+    width: min(100% - 20px, 1180px);
+    padding-top: 16px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .form-actions .button,
+  .actions .button,
+  .actions form,
+  .actions form .button {
+    width: 100%;
+  }
+
+  .form-actions {
+    justify-content: stretch;
   }
 }

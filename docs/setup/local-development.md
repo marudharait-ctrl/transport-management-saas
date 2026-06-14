@@ -133,6 +133,17 @@ Authorized users can create transport requests at:
 
 Request creation writes a `TransportRequest` row and a matching `transport_request.created` audit event.
 
+The request form is mobile-first and optimized for quick entry:
+
+- request date defaults to today,
+- dispatch date defaults to two days from today,
+- target delivery defaults to four days from today,
+- location uses city and 6 digit pincode instead of state,
+- material and truck requirement have practical defaults,
+- selected transporters create `QuoteRequest` rows with `READY` status for a prepared WhatsApp broadcast.
+
+The app does not automatically send transporter WhatsApp messages yet. Outbound send should be added as an explicit audited action after the message format is confirmed.
+
 Start PostgreSQL:
 
 ```powershell

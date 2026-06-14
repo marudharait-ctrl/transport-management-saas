@@ -22,9 +22,9 @@ export async function createTransportRequest(_state: RequestFormState, formData:
   const title = required(formData, "title");
   const loadType = required(formData, "loadType");
   const pickupCity = required(formData, "pickupCity");
-  const pickupState = required(formData, "pickupState");
+  const pickupPincode = required(formData, "pickupPincode");
   const dropCity = required(formData, "dropCity");
-  const dropState = required(formData, "dropState");
+  const dropPincode = required(formData, "dropPincode");
   const material = required(formData, "material");
   const quantity = required(formData, "quantity");
   const truckRequirement = required(formData, "truckRequirement");
@@ -32,6 +32,10 @@ export async function createTransportRequest(_state: RequestFormState, formData:
   const targetDeliveryDateValue = required(formData, "targetDeliveryDate");
   const targetDeliveryDate = targetDeliveryDateValue ? parseDate(targetDeliveryDateValue) : null;
   const notes = required(formData, "notes");
+  const transporterIds = formData
+    .getAll("transporterIds")
+    .map((value) => String(value))
+    .filter(Boolean);
 
   const validLoadTypes = ["FULL_TRUCK", "PARTIAL_LOAD", "SIZE_SPECIFIC", "MULTI_LEG"];
 
@@ -39,9 +43,9 @@ export async function createTransportRequest(_state: RequestFormState, formData:
     !title ||
     !validLoadTypes.includes(loadType) ||
     !pickupCity ||
-    !pickupState ||
+    !pickupPincode ||
     !dropCity ||
-    !dropState ||
+    !dropPincode ||
     !material ||
     !quantity ||
     !truckRequirement ||
@@ -54,46 +58,116 @@ export async function createTransportRequest(_state: RequestFormState, formData:
     return { error: "Target delivery date is invalid." };
   }
 
+  const pincodePattern = /^\d{6}$/;
+
+  if (!pincodePattern.test(pickupPincode) || !pincodePattern.test(dropPincode)) {
+    return { error: "Please enter valid 6 digit pickup and drop pincodes." };
+  }
+
+  const companyTransporters = await prisma.companyTransporter.findMany({
+    where: {
+      companyId: user.companyId,
+      transporterId: { in: transporterIds }
+    },
+    include: { transporter: true }
+  });
+  const validTransporterIds = new Set(companyTransporters.map((item) => item.transporterId));
+
+  if (transporterIds.some((id) => !validTransporterIds.has(id))) {
+    return { error: "One selected transporter is not available for this company." };
+  }
+
   const requestCount = await prisma.transportRequest.count({
     where: { companyId: user.companyId }
   });
   const requestNumber = `MP-TR-2026-${String(requestCount + 1).padStart(4, "0")}`;
 
-  const request = await prisma.transportRequest.create({
-    data: {
-      companyId: user.companyId,
-      requestedById: user.id,
-      requestNumber,
-      title,
-      loadType: loadType as "FULL_TRUCK" | "PARTIAL_LOAD" | "SIZE_SPECIFIC" | "MULTI_LEG",
-      status: "OPEN",
-      pickupCity,
-      pickupState,
-      dropCity,
-      dropState,
-      material,
-      quantity,
-      truckRequirement,
-      pickupDate,
-      targetDeliveryDate,
-      notes: notes || null,
-      aiSummary: "Manual web request created. AI intake and transporter matching can enrich this next."
-    }
-  });
+  const quoteMessage = [
+    `Quote request ${requestNumber}`,
+    `${pickupCity} ${pickupPincode} to ${dropCity} ${dropPincode}`,
+    `Pickup: ${required(formData, "pickupDate")}`,
+    targetDeliveryDateValue ? `Target delivery: ${targetDeliveryDateValue}` : null,
+    `Load: ${quantity} ${material}`,
+    `Truck: ${truckRequirement}`,
+    notes ? `Notes: ${notes}` : null
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  await prisma.auditEvent.create({
-    data: {
-      companyId: user.companyId,
-      requestId: request.id,
-      actorType: "company_user",
-      actorName: user.name,
-      action: "transport_request.created",
-      details: {
-        channel: "web",
+  await prisma.$transaction(async (tx) => {
+    const request = await tx.transportRequest.create({
+      data: {
+        companyId: user.companyId,
+        requestedById: user.id,
         requestNumber,
-        loadType,
-        route: `${pickupCity} to ${dropCity}`
+        title,
+        loadType: loadType as "FULL_TRUCK" | "PARTIAL_LOAD" | "SIZE_SPECIFIC" | "MULTI_LEG",
+        status: "OPEN",
+        pickupCity,
+        pickupState: "TBD",
+        pickupPincode,
+        dropCity,
+        dropState: "TBD",
+        dropPincode,
+        material,
+        quantity,
+        truckRequirement,
+        pickupDate,
+        targetDeliveryDate,
+        notes: notes || null,
+        aiSummary:
+          transporterIds.length > 0
+            ? `Manual web request created with ${transporterIds.length} transporter broadcast target(s) prepared.`
+            : "Manual web request created. Transporter broadcast can be prepared next."
       }
+    });
+
+    if (companyTransporters.length > 0) {
+      await tx.quoteRequest.createMany({
+        data: companyTransporters.map((item) => ({
+          companyId: user.companyId,
+          requestId: request.id,
+          transporterId: item.transporterId,
+          channel: "WHATSAPP",
+          status: "READY",
+          message: quoteMessage
+        }))
+      });
+    }
+
+    await tx.auditEvent.create({
+      data: {
+        companyId: user.companyId,
+        requestId: request.id,
+        actorType: "company_user",
+        actorName: user.name,
+        action: "transport_request.created",
+        details: {
+          channel: "web",
+          requestNumber,
+          loadType,
+          route: `${pickupCity} to ${dropCity}`,
+          pickupPincode,
+          dropPincode
+        }
+      }
+    });
+
+    if (companyTransporters.length > 0) {
+      await tx.auditEvent.create({
+        data: {
+          companyId: user.companyId,
+          requestId: request.id,
+          actorType: "company_user",
+          actorName: user.name,
+          action: "quote_broadcast.prepared",
+          details: {
+            channel: "whatsapp",
+            transporterCount: companyTransporters.length,
+            transporters: companyTransporters.map((item) => item.transporter.name)
+          }
+        }
+      });
     }
   });
 
