@@ -67,6 +67,28 @@ pnpm typecheck
 pnpm build
 ```
 
+## Public Development Tunnel
+
+The local MVP can be exposed through the existing Cloudflare tunnel:
+
+```text
+https://task.iananas.eu -> taskapp tunnel -> http://127.0.0.1:3001
+```
+
+Local cloudflared config:
+
+```powershell
+C:\Users\User\.cloudflared\config-tasks.yml
+```
+
+Current tunnel start command:
+
+```powershell
+cloudflared --config C:\Users\User\.cloudflared\config-tasks.yml tunnel run taskapp
+```
+
+The web app must also be running locally on port `3001`.
+
 Seed data currently creates:
 
 - Marudara Polypack company tenant.
