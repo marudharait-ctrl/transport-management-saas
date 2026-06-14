@@ -76,6 +76,8 @@ pnpm dev
 
 The first MVP screen is a Marudara Polypack transport desk with seeded company users, transporters, transport requests, quotes, one planned shipment, and audit events.
 
+The public development app requires login. Seeded users are authorized company users only, and admin users can manage access from `/admin/users`.
+
 ## Collaboration
 
 Naresh, Mahesh Bhai, and Suresh Purohit are collaborators for this transport-management SaaS effort. Requirements and decisions shared through WhatsApp should be captured back into this repository when they affect the product.

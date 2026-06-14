@@ -99,6 +99,23 @@ Seed data currently creates:
 - Three transport requests covering full-truck, partial-load, and multi-leg workflows.
 - Four quotes, one planned shipment, and five audit events.
 
+## MVP Login
+
+The dashboard is protected by a signed HTTP-only session cookie. Users can sign in only if they exist as active `CompanyUser` records.
+
+Seeded login users:
+
+- `naresh@marudara.example` - admin
+- `mahesh@marudara.example` - requester
+- `suresh@marudara.example` - approver
+- `accounts@marudara.example` - accounts
+
+The seed password comes from `AUTH_SEED_PASSWORD` in local `.env`. Admin users can view and add authorized users at:
+
+```text
+/admin/users
+```
+
 Start PostgreSQL:
 
 ```powershell

@@ -1,9 +1,28 @@
 import { PrismaClient } from "@prisma/client";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const prisma = new PrismaClient();
 
 const inr = (rupees: number) => rupees * 100;
 const date = (value: string) => new Date(`${value}T09:00:00.000+05:30`);
+const seedPassword = process.env.AUTH_SEED_PASSWORD ?? "MaruMVP@2026!";
+
+function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, passwordHash: string) {
+  const [scheme, salt, hash] = passwordHash.split(":");
+  if (scheme !== "scrypt" || !salt || !hash) {
+    return false;
+  }
+
+  const candidate = scryptSync(password, salt, 64);
+  const stored = Buffer.from(hash, "hex");
+  return stored.length === candidate.length && timingSafeEqual(stored, candidate);
+}
 
 async function main() {
   await prisma.auditEvent.deleteMany();
@@ -30,7 +49,8 @@ async function main() {
         companyId: company.id,
         name: "Naresh",
         email: "naresh@marudara.example",
-        role: "ADMIN"
+        role: "ADMIN",
+        passwordHash: hashPassword(seedPassword)
       }
     }),
     prisma.companyUser.create({
@@ -38,7 +58,8 @@ async function main() {
         companyId: company.id,
         name: "Mahesh Bhai",
         email: "mahesh@marudara.example",
-        role: "REQUESTER"
+        role: "REQUESTER",
+        passwordHash: hashPassword(seedPassword)
       }
     }),
     prisma.companyUser.create({
@@ -46,7 +67,8 @@ async function main() {
         companyId: company.id,
         name: "Suresh Purohit",
         email: "suresh@marudara.example",
-        role: "APPROVER"
+        role: "APPROVER",
+        passwordHash: hashPassword(seedPassword)
       }
     }),
     prisma.companyUser.create({
@@ -54,7 +76,8 @@ async function main() {
         companyId: company.id,
         name: "Accounts Team",
         email: "accounts@marudara.example",
-        role: "ACCOUNTS"
+        role: "ACCOUNTS",
+        passwordHash: hashPassword(seedPassword)
       }
     })
   ]);
@@ -302,7 +325,13 @@ async function main() {
   });
 
   console.log("Seeded Marudara Polypack MVP data");
-  console.log({ company: company.name, transporters: transporters.length, requests: 3 });
+  console.log({
+    company: company.name,
+    transporters: transporters.length,
+    requests: 3,
+    authorizedUsers: 4,
+    passwordVerified: verifyPassword(seedPassword, admin.passwordHash)
+  });
   void accounts;
 }
 

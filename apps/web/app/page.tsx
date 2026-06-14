@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { logout } from "@/app/actions/auth";
+import { requireUser } from "@/lib/auth";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +71,7 @@ function statusClass(status: string) {
 }
 
 export default async function Home() {
+  const currentUser = await requireUser();
   const company = await prisma.company.findUnique({
     where: { slug: "marudara-polypack" },
     include: {
@@ -124,12 +128,23 @@ export default async function Home() {
             </p>
           </div>
           <div className="actions">
+            <span className="user-pill">{currentUser.name}</span>
+            {currentUser.role === "ADMIN" ? (
+              <Link className="button" href="/admin/users">
+                Users
+              </Link>
+            ) : null}
             <a className="button primary" href="#requests">
               New request
             </a>
             <a className="button" href="#quotes">
               Compare quotes
             </a>
+            <form action={logout}>
+              <button className="button" type="submit">
+                Sign out
+              </button>
+            </form>
           </div>
         </header>
 
@@ -162,7 +177,7 @@ export default async function Home() {
                     <div>
                       <h3>{request.title}</h3>
                       <p className="muted">
-                        {request.requestNumber} · raised by {request.requestedBy.name}
+                        {request.requestNumber} - raised by {request.requestedBy.name}
                       </p>
                     </div>
                     <span className={statusClass(request.status)}>{request.status.replaceAll("_", " ")}</span>
@@ -178,7 +193,7 @@ export default async function Home() {
                     <div>
                       <dt>Load</dt>
                       <dd>
-                        {request.quantity} · {request.material}
+                        {request.quantity} - {request.material}
                       </dd>
                     </div>
                     <div>
@@ -192,7 +207,7 @@ export default async function Home() {
                   {request.shipment ? (
                     <p className="muted">
                       Shipment planned with {request.shipment.transporter.name}
-                      {request.shipment.vehicleNumber ? ` · ${request.shipment.vehicleNumber}` : ""}
+                      {request.shipment.vehicleNumber ? ` - ${request.shipment.vehicleNumber}` : ""}
                     </p>
                   ) : null}
                 </article>
@@ -210,14 +225,14 @@ export default async function Home() {
                       <div>
                         <strong>{quote.transporter.name}</strong>
                         <p className="muted">
-                          {request.requestNumber} · {quote.truckType}
+                          {request.requestNumber} - {quote.truckType}
                         </p>
                       </div>
                       <span className="money">{formatMoney.format(quote.amountPaise / 100)}</span>
                     </div>
                     <p className="muted">
-                      {quote.status.replaceAll("_", " ")} · {quote.receivedVia}
-                      {quote.aiExtracted ? " · AI extracted" : ""}
+                      {quote.status.replaceAll("_", " ")} - {quote.receivedVia}
+                      {quote.aiExtracted ? " - AI extracted" : ""}
                     </p>
                   </article>
                 ))
@@ -230,7 +245,7 @@ export default async function Home() {
                 <li key={event.id}>
                   <strong>{event.action.replaceAll(".", " ")}</strong>
                   <span>
-                    {event.actorName} · {formatDate.format(event.createdAt)}
+                    {event.actorName} - {formatDate.format(event.createdAt)}
                   </span>
                 </li>
               ))}

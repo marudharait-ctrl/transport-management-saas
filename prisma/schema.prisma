@@ -63,15 +63,19 @@ model Company {
 }
 
 model CompanyUser {
-  id        String          @id @default(cuid())
-  companyId String
-  name      String
-  email     String
-  role      CompanyUserRole
-  createdAt DateTime        @default(now())
-  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  requests  TransportRequest[] @relation("RequestedBy")
-  approvals TransportRequest[] @relation("ApprovedBy")
+  id           String          @id @default(cuid())
+  companyId    String
+  name         String
+  email        String
+  role         CompanyUserRole
+  passwordHash String          @default("")
+  isActive     Boolean         @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @default(now()) @updatedAt
+  company      Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requests     TransportRequest[] @relation("RequestedBy")
+  approvals    TransportRequest[] @relation("ApprovedBy")
 
   @@unique([companyId, email])
   @@index([companyId])
