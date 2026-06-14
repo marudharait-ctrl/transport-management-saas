@@ -11,22 +11,66 @@ Installed and available:
 - pnpm `11.6.0`
 - Git `2.53.0.windows.2`
 - GitHub CLI `2.94.0`
+- PostgreSQL `18.4`
 
 Not available in the current shell:
 
 - Docker
-- PostgreSQL CLI/server
+
+## Local PostgreSQL
+
+PostgreSQL was installed through Scoop under the user profile.
+
+Data directory:
+
+```powershell
+C:\Users\User\scoop\apps\postgresql\current\data
+```
+
+Development database:
+
+```text
+transport_management_dev
+```
+
+Default local connection:
+
+```text
+postgresql://postgres@localhost:5432/transport_management_dev
+```
+
+This local install currently uses trust authentication for local connections, as initialized by Scoop/PostgreSQL. It is suitable for local development only.
+
+Start PostgreSQL:
+
+```powershell
+pg_ctl -D "$env:USERPROFILE\scoop\apps\postgresql\current\data" -l "$env:USERPROFILE\scoop\apps\postgresql\current\data\postgres.log" start
+```
+
+Check status:
+
+```powershell
+pg_ctl -D "$env:USERPROFILE\scoop\apps\postgresql\current\data" status
+```
+
+Stop PostgreSQL:
+
+```powershell
+pg_ctl -D "$env:USERPROFILE\scoop\apps\postgresql\current\data" stop
+```
 
 ## Recommendation
 
-Start MVP development with managed PostgreSQL instead of local Docker/PostgreSQL.
+Use local PostgreSQL for immediate development and tests.
+
+For shared staging/production, use managed PostgreSQL instead of this local install.
 
 Good options:
 
 - Supabase
 - Neon
 
-This keeps local setup simple and avoids requiring admin rights or Docker Desktop during the first implementation pass.
+This keeps production operations separate from local development and avoids requiring Docker Desktop.
 
 ## Useful Commands
 
@@ -36,10 +80,12 @@ npm --version
 pnpm --version
 git --version
 gh auth status
+psql --version
 ```
 
 ## Notes
 
 - `pnpm` was installed globally through npm because Corepack could not create shims inside `C:\Program Files\nodejs` without elevated permissions.
 - GitHub CLI is installed at `C:\Users\User\tools\gh\gh.exe` and was added to the user PATH.
+- PostgreSQL was installed with Scoop to avoid admin/system-service changes.
 - Docker Desktop can be added later if local containers become necessary.

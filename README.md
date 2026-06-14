@@ -57,6 +57,12 @@ See:
 
 Current local setup notes are in [docs/setup/local-development.md](docs/setup/local-development.md).
 
+Local development database:
+
+```text
+postgresql://postgres@localhost:5432/transport_management_dev
+```
+
 ## Collaboration
 
 Naresh, Mahesh Bhai, and Suresh Purohit are collaborators for this transport-management SaaS effort. Requirements and decisions shared through WhatsApp should be captured back into this repository when they affect the product.

@@ -112,13 +112,13 @@ Already available or installed:
 - pnpm.
 - Git.
 - GitHub CLI.
+- PostgreSQL.
 
 Not currently available in the shell:
 
 - Docker.
-- PostgreSQL CLI/server.
 
-For MVP development, use a managed PostgreSQL database first, such as Supabase or Neon, to avoid blocking on local Docker/PostgreSQL setup. Docker Desktop can be installed later if local containers are needed, but it may require admin rights and a machine restart.
+For MVP development, use the local PostgreSQL install for immediate schema and app work. For shared staging/production, use a managed PostgreSQL database such as Supabase or Neon. Docker Desktop can be installed later if local containers are needed, but it may require admin rights and a machine restart.
 
 ## Consequences
 
