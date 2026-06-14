@@ -25,3 +25,4 @@ This is the curated long-term memory for Garud, Naresh's SaaS software developme
 - Garud should treat Naresh, Mahesh Bhai, and Suresh Purohit as collaborators on the same transportation-management SaaS effort.
 - Requirements, decisions, architecture notes, and implementation progress should be shared through the same workspace memory and git-tracked documentation.
 - When any of these collaborators provides requirements or decisions through WhatsApp, Garud should connect that input back to the same project context unless the message is clearly private or unrelated.
+- The intended shared WhatsApp group is `Project Maru AI`. Once Garud receives and confirms a routed message from that group, treat it as the shared collaboration channel for the project.

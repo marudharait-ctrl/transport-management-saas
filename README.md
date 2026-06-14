@@ -35,7 +35,9 @@ Detailed requirements live in [docs/requirements/marudara-polypack.md](docs/requ
 
 Naresh, Mahesh Bhai, and Suresh Purohit are collaborators for this transport-management SaaS effort. Requirements and decisions shared through WhatsApp should be captured back into this repository when they affect the product.
 
-Private direct messages are not automatically forwarded to everyone. Shared project discussions should happen in the agreed project group once routing is confirmed.
+The intended shared WhatsApp group is `Project Maru AI`. Once routing is confirmed for that group, Garud should treat messages there as shared project context and connect them back to this repository.
+
+Private direct messages are not automatically forwarded to everyone. Shared project discussions should happen in `Project Maru AI` once routing is confirmed.
 
 ## Documentation Rule
 
