@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendQuoteRequest } from "@/app/actions/broadcasts";
 import { logout } from "@/app/actions/auth";
 import { requireUser } from "@/lib/auth";
 import Link from "next/link";
@@ -11,6 +12,7 @@ type DashboardUser = {
 
 type DashboardTransporter = {
   name: string;
+  primaryPhone?: string;
 };
 
 type DashboardQuote = {
@@ -230,8 +232,24 @@ export default async function Home() {
 
                   {request.quoteRequests.length > 0 ? (
                     <div className="broadcast-summary">
-                      <strong>WhatsApp broadcast ready:</strong>{" "}
-                      {request.quoteRequests.map((quoteRequest) => quoteRequest.transporter.name).join(", ")}
+                      <strong>WhatsApp broadcasts</strong>
+                      <div className="broadcast-list">
+                        {request.quoteRequests.map((quoteRequest) => (
+                          <div className="broadcast-row" key={quoteRequest.id}>
+                            <span>
+                              {quoteRequest.transporter.name} - {quoteRequest.status}
+                            </span>
+                            {quoteRequest.status === "SENT" ? null : (
+                              <form action={sendQuoteRequest}>
+                                <input type="hidden" name="quoteRequestId" value={quoteRequest.id} />
+                                <button className="button" type="submit">
+                                  Send WhatsApp
+                                </button>
+                              </form>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : null}
 

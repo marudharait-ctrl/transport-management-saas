@@ -467,6 +467,28 @@ input[readonly] {
   line-height: 1.4;
 }
 
+.broadcast-summary strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.broadcast-list {
+  display: grid;
+  gap: 8px;
+}
+
+.broadcast-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.broadcast-row .button {
+  padding: 6px 9px;
+  background: var(--surface);
+}
+
 @media (max-width: 900px) {
   .topbar {
     align-items: flex-start;
@@ -502,8 +524,16 @@ input[readonly] {
   .form-actions .button,
   .actions .button,
   .actions form,
-  .actions form .button {
+  .actions form .button,
+  .broadcast-row,
+  .broadcast-row form,
+  .broadcast-row .button {
     width: 100%;
+  }
+
+  .broadcast-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .form-actions {
