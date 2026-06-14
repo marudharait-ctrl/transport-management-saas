@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildQuoteRequestMessage } from "@/lib/quote-message";
 
 const execFileAsync = promisify(execFile);
 
@@ -52,13 +53,34 @@ export async function sendQuoteRequest(formData: FormData) {
     },
     include: {
       transporter: true,
-      request: true
+      request: {
+        include: {
+          company: true
+        }
+      }
     }
   });
 
   if (!quoteRequest || quoteRequest.status === "SENT") {
     return;
   }
+
+  const message = buildQuoteRequestMessage({
+    companyName: quoteRequest.request.company.name,
+    requestNumber: quoteRequest.request.requestNumber,
+    title: quoteRequest.request.title,
+    loadType: quoteRequest.request.loadType,
+    pickupCity: quoteRequest.request.pickupCity,
+    pickupPincode: quoteRequest.request.pickupPincode,
+    dropCity: quoteRequest.request.dropCity,
+    dropPincode: quoteRequest.request.dropPincode,
+    material: quoteRequest.request.material,
+    quantity: quoteRequest.request.quantity,
+    truckRequirement: quoteRequest.request.truckRequirement,
+    pickupDate: quoteRequest.request.pickupDate,
+    targetDeliveryDate: quoteRequest.request.targetDeliveryDate,
+    notes: quoteRequest.request.notes
+  });
 
   try {
     const invocation = openclawInvocation([
@@ -69,7 +91,7 @@ export async function sendQuoteRequest(formData: FormData) {
         "--target",
         quoteRequest.transporter.primaryPhone,
         "--message",
-        quoteRequest.message,
+        message,
         "--json"
       ]);
     const { stdout } = await execFileAsync(
@@ -87,7 +109,8 @@ export async function sendQuoteRequest(formData: FormData) {
         where: { id: quoteRequest.id },
         data: {
           status: "SENT",
-          sentAt: new Date()
+          sentAt: new Date(),
+          message
         }
       }),
       prisma.auditEvent.create({

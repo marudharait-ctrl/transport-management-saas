@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { buildQuoteRequestMessage } from "@/lib/quote-message";
 
 export type RequestFormState = {
   error?: string;
@@ -82,17 +83,22 @@ export async function createTransportRequest(_state: RequestFormState, formData:
   });
   const requestNumber = `MP-TR-2026-${String(requestCount + 1).padStart(4, "0")}`;
 
-  const quoteMessage = [
-    `Quote request ${requestNumber}`,
-    `${pickupCity} ${pickupPincode} to ${dropCity} ${dropPincode}`,
-    `Pickup: ${required(formData, "pickupDate")}`,
-    targetDeliveryDateValue ? `Target delivery: ${targetDeliveryDateValue}` : null,
-    `Load: ${quantity} ${material}`,
-    `Truck: ${truckRequirement}`,
-    notes ? `Notes: ${notes}` : null
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const quoteMessage = buildQuoteRequestMessage({
+    companyName: user.company.name,
+    requestNumber,
+    title,
+    loadType,
+    pickupCity,
+    pickupPincode,
+    dropCity,
+    dropPincode,
+    material,
+    quantity,
+    truckRequirement,
+    pickupDate: required(formData, "pickupDate"),
+    targetDeliveryDate: targetDeliveryDateValue || null,
+    notes: notes || null
+  });
 
   await prisma.$transaction(async (tx) => {
     const request = await tx.transportRequest.create({
