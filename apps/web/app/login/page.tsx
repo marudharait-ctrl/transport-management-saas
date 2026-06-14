@@ -13,7 +13,7 @@ export default async function LoginPage() {
       <section className="auth-panel">
         <div className="brand">
           <h1>Transport Management</h1>
-          <p>Authorized users only.</p>
+          <p>Authorized users only. For MVP dev login, use admin / admin.</p>
         </div>
         <LoginForm />
       </section>

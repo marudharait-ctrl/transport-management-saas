@@ -116,6 +116,15 @@ The seed password comes from `AUTH_SEED_PASSWORD` in local `.env`. Admin users c
 /admin/users
 ```
 
+For MVP development only, the login screen also accepts:
+
+```text
+user: admin
+password: admin
+```
+
+Remove or replace `DEV_ADMIN_USER` and `DEV_ADMIN_PASSWORD` before production.
+
 Authorized users can create transport requests at:
 
 ```text

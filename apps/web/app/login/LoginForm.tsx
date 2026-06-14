@@ -11,8 +11,8 @@ export function LoginForm() {
   return (
     <form className="auth-form" action={formAction}>
       <label>
-        Email
-        <input name="email" type="email" autoComplete="email" required />
+        User
+        <input name="email" autoComplete="username" required />
       </label>
       <label>
         Password
