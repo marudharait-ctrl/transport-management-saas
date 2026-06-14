@@ -105,6 +105,13 @@ export function NewRequestForm({ transporters }: { transporters: RequestTranspor
           Select transporters who should receive this quote request. This prepares the broadcast list; actual WhatsApp send can be enabled next.
         </p>
         <div className="transporter-options">
+          {transporters.length === 0 ? (
+            <div className="empty-state">
+              <strong>No vendors added yet</strong>
+              <p className="muted">Add transport vendors before testing WhatsApp broadcast selection.</p>
+            </div>
+          ) : null}
+
           {transporters.map((transporter) => (
             <label className="transporter-option" key={transporter.id}>
               <input name="transporterIds" type="checkbox" value={transporter.id} defaultChecked />

@@ -95,9 +95,15 @@ Seed data currently creates:
 
 - Marudara Polypack company tenant.
 - Naresh, Mahesh Bhai, Suresh Purohit, and Accounts Team company users.
-- Four shared transporters.
-- Three transport requests covering full-truck, partial-load, and multi-leg workflows.
-- Four quotes, one planned shipment, and five audit events.
+- No demo vendors, requests, quotes, shipments, or audit events.
+
+Real transport vendors can be added from:
+
+```text
+/admin/vendors
+```
+
+Vendor records capture the vendor name, real WhatsApp number, base city/state, optional email, and relationship notes.
 
 ## MVP Login
 
@@ -114,6 +120,12 @@ The seed password comes from `AUTH_SEED_PASSWORD` in local `.env`. Admin users c
 
 ```text
 /admin/users
+```
+
+Admin users can view and add transport vendors at:
+
+```text
+/admin/vendors
 ```
 
 For MVP development only, the login screen also accepts:

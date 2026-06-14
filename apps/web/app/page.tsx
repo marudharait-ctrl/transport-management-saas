@@ -142,9 +142,14 @@ export default async function Home() {
           <div className="actions">
             <span className="user-pill">{currentUser.name}</span>
             {currentUser.role === "ADMIN" ? (
-              <Link className="button" href="/admin/users">
-                Users
-              </Link>
+              <>
+                <Link className="button" href="/admin/vendors">
+                  Vendors
+                </Link>
+                <Link className="button" href="/admin/users">
+                  Users
+                </Link>
+              </>
             ) : null}
             <Link className="button primary" href="/requests/new">
               New request
@@ -183,6 +188,13 @@ export default async function Home() {
           <section className="panel" id="requests">
             <h2>Transport Requests</h2>
             <div className="request-list">
+              {dashboardCompany.requests.length === 0 ? (
+                <div className="empty-state">
+                  <strong>No requests yet</strong>
+                  <p className="muted">Add transport vendors, then create the first real transport request.</p>
+                </div>
+              ) : null}
+
               {dashboardCompany.requests.map((request) => (
                 <article className="request" key={request.id}>
                   <div className="request-head">
@@ -237,6 +249,13 @@ export default async function Home() {
           <aside className="panel" id="quotes">
             <h2>Quote Board</h2>
             <div className="quotes">
+              {quoteCount === 0 ? (
+                <div className="empty-state">
+                  <strong>No quotes yet</strong>
+                  <p className="muted">Quotes will appear after vendors respond.</p>
+                </div>
+              ) : null}
+
               {dashboardCompany.requests.flatMap((request) =>
                 request.quotes.map((quote) => (
                   <article className="quote" key={quote.id}>

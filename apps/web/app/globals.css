@@ -371,6 +371,18 @@ input[readonly] {
   margin-bottom: 4px;
 }
 
+.empty-state {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--surface-muted);
+}
+
+.empty-state strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
 .row-actions {
   display: flex;
   align-items: center;
@@ -423,6 +435,10 @@ input[readonly] {
   padding: 10px;
   color: var(--text);
   font-size: 13px;
+}
+
+.transporter-options .empty-state {
+  grid-column: 1 / -1;
 }
 
 .transporter-option input {

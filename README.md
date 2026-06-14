@@ -75,9 +75,11 @@ pnpm db:seed
 pnpm dev
 ```
 
-The first MVP screen is a Marudara Polypack transport desk with seeded company users, transporters, transport requests, quotes, one planned shipment, and audit events.
+The first MVP screen is a Marudara Polypack transport desk with seeded company users only. Transport vendors and transport requests should now be entered with real data from the app.
 
 The public development app requires login. Seeded users are authorized company users only, and admin users can manage access from `/admin/users`.
+
+Admin users can add real transport vendors from `/admin/vendors`. Each vendor captures a name, WhatsApp number, base city/state, optional email, and notes. These vendors appear on the request form for quote-broadcast preparation.
 
 Authorized users can create transport requests from `/requests/new`. The intake form is mobile-first, defaults request dates for quick entry, asks for city and pincode instead of state, and lets the user select known transporters for a prepared WhatsApp quote broadcast.
 
