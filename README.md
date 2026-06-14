@@ -28,6 +28,7 @@ Detailed requirements live in [docs/requirements/marudara-polypack.md](docs/requ
 
 - `docs/requirements/` - customer and product requirements.
 - `docs/decisions/` - major product and architecture decisions.
+- `docs/setup/` - local development and environment setup notes.
 - `SOUL.md`, `IDENTITY.md`, `MEMORY.md` - Garud workspace identity and operating memory.
 - `TOOLS.md` - local commands, setup notes, deployment notes, and operational references.
 
@@ -50,6 +51,11 @@ See:
 - [docs/decisions/0001-mvp-architecture.md](docs/decisions/0001-mvp-architecture.md)
 - [docs/decisions/0002-ai-first-agentic-architecture.md](docs/decisions/0002-ai-first-agentic-architecture.md)
 - [docs/decisions/0003-ai-optional-core-and-mcp.md](docs/decisions/0003-ai-optional-core-and-mcp.md)
+- [docs/decisions/0004-mvp-technology-stack.md](docs/decisions/0004-mvp-technology-stack.md)
+
+## Local Setup
+
+Current local setup notes are in [docs/setup/local-development.md](docs/setup/local-development.md).
 
 ## Collaboration
 
