@@ -1,168 +1,32 @@
-import { prisma } from "@/lib/prisma";
-import { sendQuoteRequest } from "@/app/actions/broadcasts";
 import { logout } from "@/app/actions/auth";
+import { BrandLogo } from "@/app/components/BrandLogo";
 import { requireUser } from "@/lib/auth";
-import { BarChart3, LogOut, MessageCircle, Plus, RefreshCw, Send, Truck, Users } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { Building2, KeyRound, LogOut, PackageCheck, Plus, Truck, Users } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-type DashboardUser = {
-  name: string;
-};
-
-type DashboardTransporter = {
-  name: string;
-  primaryPhone?: string;
-};
-
-type DashboardQuote = {
-  id: string;
-  amountPaise: number;
-  truckType: string;
-  status: string;
-  receivedVia: string;
-  aiExtracted: boolean;
-  transporter: DashboardTransporter;
-};
-
-type DashboardQuoteRequest = {
-  id: string;
-  status: string;
-  channel: string;
-  transporter: DashboardTransporter;
-};
-
-type DashboardRequest = {
-  id: string;
-  requestNumber: string;
-  title: string;
-  status: string;
-  pickupCity: string;
-  dropCity: string;
-  material: string;
-  quantity: string;
-  pickupDate: Date;
-  aiSummary: string | null;
-  requestedBy: DashboardUser;
-  quoteRequests: DashboardQuoteRequest[];
-  quotes: DashboardQuote[];
-  shipment: {
-    transporter: DashboardTransporter;
-    vehicleNumber: string | null;
-  } | null;
-};
-
-type DashboardCompany = {
-  name: string;
-  transporters: Array<{ transporter: DashboardTransporter }>;
-  requests: DashboardRequest[];
-  auditEvents: Array<{
-    id: string;
-    actorName: string;
-    action: string;
-    createdAt: Date;
-  }>;
-};
-
-const formatDate = new Intl.DateTimeFormat("en-IN", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric"
-});
-
-const formatMoney = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0
-});
-
-function statusClass(status: string) {
-  return `status ${status.toLowerCase().replaceAll("_", "-")}`;
-}
-
 export default async function Home() {
   const currentUser = await requireUser();
-  const company = await prisma.company.findUnique({
-    where: { slug: "marudara-polypack" },
-    include: {
-      users: true,
-      transporters: { include: { transporter: true } },
-      requests: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          requestedBy: true,
-          approvedBy: true,
-          quotes: {
-            include: { transporter: true },
-            orderBy: { amountPaise: "asc" }
-          },
-          quoteRequests: {
-            include: { transporter: true },
-            orderBy: { createdAt: "asc" }
-          },
-          shipment: { include: { transporter: true } }
-        }
-      },
-      auditEvents: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      }
-    }
+  const notifications = await prisma.notification.findMany({
+    where: { companyId: currentUser.companyId, recipientType: "ADMIN" },
+    orderBy: { createdAt: "desc" },
+    take: 5
   });
 
-  if (!company) {
-    return (
-      <main className="page">
-        <div className="shell">
-          <div className="panel">
-            <h1>No seed data found</h1>
-            <p className="muted">Run pnpm db:seed to create the Marudara Polypack demo workspace.</p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const dashboardCompany = company as DashboardCompany;
-
-  const openRequests = dashboardCompany.requests.filter((request) =>
-    ["OPEN", "QUOTED", "APPROVED", "IN_TRANSIT"].includes(request.status)
-  );
-  const quoteCount = dashboardCompany.requests.reduce((total, request) => total + request.quotes.length, 0);
-  const approvedRequest = dashboardCompany.requests.find((request) => request.status === "APPROVED");
-
   return (
-    <main className="page">
-      <div className="shell">
-        <header className="topbar">
+    <main className="page home-page">
+      <div className="shell home-shell">
+        <header className="topbar clean-topbar">
           <div className="brand">
+            <BrandLogo />
             <span className="eyebrow">Transport desk</span>
-            <h1>{dashboardCompany.name}</h1>
-            <p>Requests, vendor broadcasts, quote comparison, and shipment planning in one workspace.</p>
+            <h1>{currentUser.company.name}</h1>
+            <p>Choose a workspace action.</p>
           </div>
           <div className="actions">
             <span className="user-pill">{currentUser.name}</span>
-            {currentUser.role === "ADMIN" ? (
-              <>
-                <Link className="button" href="/admin/vendors">
-                  <Truck size={16} aria-hidden="true" />
-                  Vendors
-                </Link>
-                <Link className="button" href="/admin/users">
-                  <Users size={16} aria-hidden="true" />
-                  Users
-                </Link>
-              </>
-            ) : null}
-            <Link className="button primary" href="/requests/new">
-              <Plus size={16} aria-hidden="true" />
-              New request
-            </Link>
-            <a className="button" href="#quotes">
-              <BarChart3 size={16} aria-hidden="true" />
-              Compare quotes
-            </a>
             <form action={logout}>
               <button className="button icon-button-text" type="submit">
                 <LogOut size={16} aria-hidden="true" />
@@ -172,185 +36,86 @@ export default async function Home() {
           </div>
         </header>
 
-        <section className="metrics" aria-label="MVP metrics">
-          <div className="metric">
-            <div className="metric-icon">
-              <Truck size={18} aria-hidden="true" />
-            </div>
-            <span>Active requests</span>
-            <strong>{openRequests.length}</strong>
-          </div>
-          <div className="metric">
-            <div className="metric-icon">
-              <Users size={18} aria-hidden="true" />
-            </div>
-            <span>Transporters</span>
-            <strong>{dashboardCompany.transporters.length}</strong>
-          </div>
-          <div className="metric">
-            <div className="metric-icon">
-              <MessageCircle size={18} aria-hidden="true" />
-            </div>
-            <span>Quotes received</span>
-            <strong>{quoteCount}</strong>
-          </div>
-          <div className="metric">
-            <div className="metric-icon">
-              <BarChart3 size={18} aria-hidden="true" />
-            </div>
-            <span>Approved load</span>
-            <strong>{approvedRequest ? "1" : "0"}</strong>
-          </div>
-        </section>
+        <section className="option-grid" aria-label="Main actions">
+          <Link className="option-tile primary-option" href="/requests/new">
+            <span className="option-icon">
+              <Plus size={22} aria-hidden="true" />
+            </span>
+            <span>
+              <strong>New transport request</strong>
+            </span>
+          </Link>
 
-        <div className="grid">
-          <section className="panel" id="requests">
-            <div className="panel-title">
-              <h2>Transport Requests</h2>
-              <Link className="button compact" href="/requests/new">
-                <Plus size={15} aria-hidden="true" />
-                New
+          {currentUser.role === "ADMIN" ? (
+            <>
+              <Link className="option-tile" href="/admin/vendors">
+                <span className="option-icon">
+                  <KeyRound size={22} aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>Vendor Master</strong>
+                </span>
               </Link>
-            </div>
-            <div className="request-list">
-              {dashboardCompany.requests.length === 0 ? (
-                <div className="empty-state">
-                  <strong>No requests yet</strong>
-                  <p className="muted">Add transport vendors, then create the first real transport request.</p>
-                </div>
-              ) : null}
 
-              {dashboardCompany.requests.map((request) => (
-                <article className="request" key={request.id}>
-                  <div className="request-head">
-                    <div>
-                      <h3>{request.title}</h3>
-                      <p className="muted">
-                        {request.requestNumber} - raised by {request.requestedBy.name}
-                      </p>
-                    </div>
-                    <span className={statusClass(request.status)}>{request.status.replaceAll("_", " ")}</span>
-                  </div>
+              <Link className="option-tile" href="/admin/consignees">
+                <span className="option-icon">
+                  <Building2 size={22} aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>Consignee Master</strong>
+                </span>
+              </Link>
 
-                  <dl className="details">
-                    <div>
-                      <dt>Route</dt>
-                      <dd>
-                        {request.pickupCity} to {request.dropCity}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Load</dt>
-                      <dd>
-                        {request.quantity} - {request.material}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Pickup</dt>
-                      <dd>{formatDate.format(request.pickupDate)}</dd>
-                    </div>
-                  </dl>
+              <Link className="option-tile" href="/admin/users">
+                <span className="option-icon">
+                  <Users size={22} aria-hidden="true" />
+                </span>
+                <span>
+                  <strong>Company users</strong>
+                </span>
+              </Link>
 
-                  {request.aiSummary ? <p className="muted">{request.aiSummary}</p> : null}
+            </>
+          ) : null}
 
-                  {request.quoteRequests.length > 0 ? (
-                    <div className="broadcast-summary">
-                      <strong>WhatsApp broadcasts</strong>
-                      <div className="broadcast-list">
-                        {request.quoteRequests.map((quoteRequest) => (
-                          <div className="broadcast-row" key={quoteRequest.id}>
-                            <span>
-                              {quoteRequest.transporter.name} - {quoteRequest.status}
-                            </span>
-                            <form action={sendQuoteRequest}>
-                              <input type="hidden" name="quoteRequestId" value={quoteRequest.id} />
-                              <button className="button" type="submit">
-                                {quoteRequest.status === "SENT"
-                                  ? (
-                                      <>
-                                        <RefreshCw size={15} aria-hidden="true" />
-                                        Resend WhatsApp
-                                      </>
-                                    )
-                                  : quoteRequest.status === "FAILED"
-                                    ? (
-                                        <>
-                                          <RefreshCw size={15} aria-hidden="true" />
-                                          Retry WhatsApp
-                                        </>
-                                      )
-                                    : (
-                                        <>
-                                          <Send size={15} aria-hidden="true" />
-                                          Send WhatsApp
-                                        </>
-                                      )}
-                              </button>
-                            </form>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+          <Link className="option-tile muted-option" href="/quotes">
+            <span className="option-icon">
+              <Truck size={22} aria-hidden="true" />
+            </span>
+            <span>
+              <strong>Compare vendor quotes</strong>
+            </span>
+          </Link>
 
-                  {request.shipment ? (
-                    <p className="muted">
-                      Shipment planned with {request.shipment.transporter.name}
-                      {request.shipment.vehicleNumber ? ` - ${request.shipment.vehicleNumber}` : ""}
-                    </p>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <aside className="panel" id="quotes">
-            <div className="panel-title">
-              <h2>Quote Board</h2>
-              <span className="count-pill">{quoteCount}</span>
-            </div>
-            <div className="quotes">
-              {quoteCount === 0 ? (
-                <div className="empty-state">
-                  <strong>No quotes yet</strong>
-                  <p className="muted">Quotes will appear after vendors respond.</p>
-                </div>
-              ) : null}
-
-              {dashboardCompany.requests.flatMap((request) =>
-                request.quotes.map((quote) => (
-                  <article className="quote" key={quote.id}>
-                    <div className="quote-row">
-                      <div>
-                        <strong>{quote.transporter.name}</strong>
-                        <p className="muted">
-                          {request.requestNumber} - {quote.truckType}
-                        </p>
-                      </div>
-                      <span className="money">{formatMoney.format(quote.amountPaise / 100)}</span>
-                    </div>
-                    <p className="muted">
-                      {quote.status.replaceAll("_", " ")} - {quote.receivedVia}
-                      {quote.aiExtracted ? " - AI extracted" : ""}
-                    </p>
-                  </article>
-                ))
-              )}
-            </div>
-
-            <h2 style={{ marginTop: 18 }}>Audit Trail</h2>
-            <ol className="timeline">
-              {dashboardCompany.auditEvents.map((event) => (
-                <li key={event.id}>
-                  <strong>{event.action.replaceAll(".", " ")}</strong>
-                  <span>
-                    {event.actorName} - {formatDate.format(event.createdAt)}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </aside>
-        </div>
+          <Link className="option-tile" href="/shipments">
+            <span className="option-icon">
+              <PackageCheck size={22} aria-hidden="true" />
+            </span>
+            <span>
+              <strong>Shipments</strong>
+            </span>
+          </Link>
+        </section>
+        <section className="panel dashboard-notifications">
+          <div className="panel-title">
+            <h2>Live notifications</h2>
+            <span className="count-pill">{notifications.length}</span>
+          </div>
+          <ul className="timeline">
+            {notifications.length === 0 ? (
+              <li>
+                <strong>No notifications yet</strong>
+                <span>RFQs, bids, approvals, shipments, documents, invoice, and payment updates will appear here.</span>
+              </li>
+            ) : null}
+            {notifications.map((notification) => (
+              <li key={notification.id}>
+                <strong>{notification.title}</strong>
+                <span>{notification.body}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </main>
   );

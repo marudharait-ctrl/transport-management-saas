@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="112" viewBox="0 0 360 112" role="img" aria-label="Marudhara Group">
+  <rect width="360" height="112" fill="#ffffff"/>
+  <g transform="translate(16 16)">
+    <rect x="7" y="7" width="66" height="66" rx="10" transform="rotate(45 40 40)" fill="#a8323a"/>
+    <circle cx="40" cy="25" r="7" fill="#ffffff"/>
+    <path d="M25 53c9-14 18-14 28 0 5 7 10 7 15 0" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M40 38v29" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <text x="110" y="48" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">MARUDHARA</text>
+  <text x="110" y="82" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="400">GROUP</text>
+  <text x="112" y="104" fill="#333333" font-family="Arial, Helvetica, sans-serif" font-size="13">You make it, We pack it.</text>
+</svg>

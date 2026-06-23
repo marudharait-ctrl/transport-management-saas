@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { resetVendorPassword } from "@/app/actions/vendors";
+import { BulkVendorUploadForm } from "./BulkVendorUploadForm";
 import { CreateVendorForm } from "./CreateVendorForm";
+import { VendorManagementActions } from "./VendorManagementActions";
 
 export default async function VendorsPage() {
   const admin = await requireAdmin();
@@ -36,7 +39,7 @@ export default async function VendorsPage() {
               {vendors.length === 0 ? (
                 <div className="empty-state">
                   <strong>No vendors yet</strong>
-                  <p className="muted">Add real transport vendor WhatsApp numbers to test quote broadcasts.</p>
+                  <p className="muted">Add transport vendor WhatsApp numbers or emails to prepare quote notifications.</p>
                 </div>
               ) : null}
 
@@ -47,11 +50,29 @@ export default async function VendorsPage() {
                     <p className="muted">
                       {vendor.transporter.primaryPhone} - {vendor.transporter.baseCity}, {vendor.transporter.baseState}
                     </p>
+                    {vendor.transporter.gstin ? <p className="muted">GSTIN: {vendor.transporter.gstin}</p> : null}
                     {vendor.notes ? <p className="muted">{vendor.notes}</p> : null}
                   </div>
                   <div className="row-actions">
-                    <span className="status approved">READY</span>
+                    <span className={`status ${vendor.isBlacklisted ? "rejected" : "approved"}`}>
+                      {vendor.isBlacklisted ? "BLACKLISTED" : "READY"}
+                    </span>
                   </div>
+                  <VendorManagementActions
+                    companyTransporterId={vendor.id}
+                    vendorName={vendor.displayName}
+                    isBlacklisted={vendor.isBlacklisted}
+                  />
+                  <form className="inline-password-form" action={resetVendorPassword}>
+                    <input type="hidden" name="companyTransporterId" value={vendor.id} />
+                    <label>
+                      Login password
+                      <input name="password" type="password" minLength={6} placeholder="New vendor password" required />
+                    </label>
+                    <button className="button compact" type="submit">
+                      Set password
+                    </button>
+                  </form>
                 </article>
               ))}
             </div>
@@ -60,6 +81,9 @@ export default async function VendorsPage() {
           <aside className="panel">
             <h2>Add Vendor</h2>
             <CreateVendorForm />
+            <div className="side-divider" />
+            <h2>Bulk Import</h2>
+            <BulkVendorUploadForm />
           </aside>
         </div>
       </div>

@@ -12,12 +12,17 @@ type QuoteMessageInput = {
   dropCity: string;
   dropState?: string | null;
   dropPincode: string | null;
+  routeLabel?: string | null;
+  routeSummary?: string | null;
+  routeDetails?: string | null;
   material: string;
   quantity: string;
   truckRequirement: string;
   pickupDate: Date | string;
+  biddingDeadline?: Date | string | null;
   targetDeliveryDate: Date | string | null;
   notes: string | null;
+  quoteUrl?: string | null;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-IN", {
@@ -27,65 +32,63 @@ const dateFormatter = new Intl.DateTimeFormat("en-IN", {
   timeZone: "Asia/Kolkata"
 });
 
+const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Asia/Kolkata"
+});
+
 function formatDate(value: Date | string | null) {
   if (!value) {
     return null;
   }
 
-  const date = value instanceof Date ? value : new Date(`${value}T09:00:00.000+05:30`);
+  const date = value instanceof Date ? value : new Date(value.includes("T") ? `${value}:00.000+05:30` : `${value}T09:00:00.000+05:30`);
   return Number.isNaN(date.getTime()) ? String(value) : dateFormatter.format(date);
 }
 
-function formatLoadType(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function locationLine(city: string, pincode: string | null) {
-  return pincode ? `${city} - ${pincode}` : city;
-}
-
-function stateLine(label: string, value?: string | null) {
-  if (!value || value === "TBD") {
+function formatDateTime(value: Date | string | null | undefined) {
+  if (!value) {
     return null;
   }
 
-  return `${label}: ${value}`;
+  const date = value instanceof Date ? value : new Date(value.includes("T") ? `${value}:00.000+05:30` : value);
+  return Number.isNaN(date.getTime()) ? String(value) : dateTimeFormatter.format(date);
+}
+
+function locationLine(city: string, _state?: string | null) {
+  return city;
 }
 
 export function buildQuoteRequestMessage(input: QuoteMessageInput) {
-  const targetDelivery = formatDate(input.targetDeliveryDate);
+  const targetDelivery = formatDateTime(input.targetDeliveryDate);
+  const biddingDeadline = formatDateTime(input.biddingDeadline);
+  const route =
+    input.routeSummary ||
+    input.routeLabel ||
+    `${locationLine(input.pickupCity, input.pickupState)} -> ${locationLine(input.dropCity, input.dropState)}`;
 
   return [
-    `Transport quote request from ${input.companyName}`,
+    "This transport quote request has been sent by Marudhara Group.",
     "",
-    `Request no: ${input.requestNumber}`,
-    `Request date: ${formatDate(input.requestDate)}`,
-    `Requested by: ${input.requestedByName}`,
-    input.status ? `Status: ${formatLoadType(input.status)}` : null,
-    `Title: ${input.title}`,
-    `Load type: ${formatLoadType(input.loadType)}`,
+    "Transport Quote Request",
     "",
-    `Pickup: ${locationLine(input.pickupCity, input.pickupPincode)}`,
-    stateLine("Pickup state", input.pickupState),
-    `Drop: ${locationLine(input.dropCity, input.dropPincode)}`,
-    stateLine("Drop state", input.dropState),
-    `Dispatch date: ${formatDate(input.pickupDate)}`,
-    targetDelivery ? `Target delivery: ${targetDelivery}` : null,
+    `Request No: ${input.requestNumber}`,
+    `Route: ${route}`,
+    `Dispatch: ${formatDateTime(input.pickupDate)}`,
+    targetDelivery ? `Target Delivery: ${targetDelivery}` : null,
     "",
     `Material: ${input.material}`,
     `Quantity: ${input.quantity}`,
-    `Truck requirement: ${input.truckRequirement}`,
-    input.notes ? `Notes: ${input.notes}` : null,
+    `Truck Requirement: ${input.truckRequirement}`,
     "",
-    "Please reply with:",
-    "1. Freight amount",
-    "2. Truck availability date",
-    "3. Transit time",
-    "4. Payment terms"
+    biddingDeadline ? `Bid Closing Date & Time: ${biddingDeadline}` : null,
+    "",
+    "Submit Quote:",
+    input.quoteUrl ?? null
   ]
     .filter((line) => line !== null)
     .join("\n");

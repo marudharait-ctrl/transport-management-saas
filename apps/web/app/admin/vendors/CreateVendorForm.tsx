@@ -15,8 +15,12 @@ export function CreateVendorForm() {
         <input name="name" placeholder="Shree Balaji Transport" required />
       </label>
       <label>
-        WhatsApp number
-        <input name="primaryPhone" inputMode="tel" placeholder="+919876543210" required />
+        WhatsApp mobile number
+        <input name="primaryPhone" inputMode="numeric" pattern="[0-9]{10}" placeholder="9876543210" required />
+      </label>
+      <label>
+        GSTIN
+        <input name="gstin" placeholder="08ABCDE1234F1Z5" />
       </label>
       <label>
         Base city
@@ -29,6 +33,10 @@ export function CreateVendorForm() {
       <label>
         Email optional
         <input name="email" type="email" placeholder="dispatch@example.com" />
+      </label>
+      <label>
+        Vendor login password
+        <input name="password" type="password" minLength={6} placeholder="Minimum 6 characters" required />
       </label>
       <label>
         Notes optional

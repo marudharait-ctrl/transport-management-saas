@@ -18,6 +18,10 @@ export function LoginForm() {
         Password
         <input name="password" type="password" autoComplete="current-password" required />
       </label>
+      <label className="checkbox-row">
+        <input name="remember" type="checkbox" />
+        <span>Remember me on this device</span>
+      </label>
       {state.error ? <p className="form-error">{state.error}</p> : null}
       <button className="button primary" type="submit" disabled={isPending}>
         {isPending ? "Signing in..." : "Sign in"}

@@ -29,13 +29,14 @@ async function main() {
   await prisma.quoteRequest.deleteMany();
   await prisma.transportRequest.deleteMany();
   await prisma.companyTransporter.deleteMany();
+  await prisma.vendorUser.deleteMany();
   await prisma.companyUser.deleteMany();
   await prisma.transporter.deleteMany();
   await prisma.company.deleteMany();
 
   const company = await prisma.company.create({
     data: {
-      name: "Marudara Polypack",
+      name: "Marudhara Trip Management",
       slug: "marudara-polypack",
       city: "Jodhpur",
       state: "Rajasthan"
@@ -81,7 +82,7 @@ async function main() {
     })
   ]);
 
-  console.log("Seeded clean Marudara Polypack MVP workspace");
+  console.log("Seeded clean Marudhara Trip Management MVP workspace");
   console.log({
     company: company.name,
     transporters: 0,

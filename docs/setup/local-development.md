@@ -60,6 +60,15 @@ pnpm db:seed
 pnpm dev
 ```
 
+For the shared public tunnel, use production mode instead of `next dev`:
+
+```powershell
+pnpm --filter @tms/web build
+pnpm --filter @tms/web start -p 3001
+```
+
+`next dev` is only for local development on the same machine. It uses HMR/websocket traffic and should not be left behind the public Cloudflare tunnel.
+
 Verification commands:
 
 ```powershell
@@ -93,7 +102,7 @@ The web app must also be running locally on port `3001`.
 
 Seed data currently creates:
 
-- Marudara Polypack company tenant.
+- Marudhara Trip Management company tenant.
 - Naresh, Mahesh Bhai, Suresh Purohit, and Accounts Team company users.
 - No demo vendors, requests, quotes, shipments, or audit events.
 
@@ -150,11 +159,23 @@ The request form is mobile-first and optimized for quick entry:
 - request date defaults to today,
 - dispatch date defaults to two days from today,
 - target delivery defaults to four days from today,
-- location uses city and 6 digit pincode instead of state,
+- route entry captures source, destination, and optional additional destinations,
 - material and truck requirement have practical defaults,
-- selected transporters create `QuoteRequest` rows with `READY` status for a prepared WhatsApp broadcast.
+- selected transporters create `QuoteRequest` rows and immediately attempt WhatsApp notification delivery.
 
-The app does not automatically send transporter WhatsApp messages yet. Outbound send should be added as an explicit audited action after the message format is confirmed.
+Automatic vendor notification currently uses the WhatsApp sender action. Successful sends move the `QuoteRequest` to `SENT`; failures move it to `FAILED` with an audit log. Email delivery still needs a configured email provider.
+
+Vendor portal flow now exists locally:
+
+- Vendors access the portal from secure WhatsApp links only.
+- `/vendor/quote/[token]` lets the assigned vendor view request details, ask a question, and submit a final quote.
+- Company users can approve a quote from the dashboard, which creates a shipment/order.
+- `/vendor/order/[token]` lets the selected vendor update truck number, driver name/mobile, upload mandatory Bilty and POD/GRN files, and submit invoice details.
+- Weight slips are admin-only documents. They are hidden from vendor UI/notifications and direct weight-slip URLs require an admin session.
+
+Uploads are stored locally under `apps/web/public/uploads` for development and ignored by git. Production should move these files to S3-compatible object storage.
+
+New vendors created from `/admin/vendors` require a vendor login password. Existing local vendors may need a vendor user created or reset before they can sign in.
 
 Start PostgreSQL:
 

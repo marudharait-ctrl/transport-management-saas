@@ -7,9 +7,13 @@ import { ArrowLeft } from "lucide-react";
 export default async function NewRequestPage() {
   const user = await requireUser();
   const transporters = await prisma.companyTransporter.findMany({
-    where: { companyId: user.companyId },
+    where: { companyId: user.companyId, isBlacklisted: false },
     orderBy: [{ trustRating: "desc" }, { displayName: "asc" }],
     include: { transporter: true }
+  });
+  const consignees = await prisma.consignee.findMany({
+    where: { companyId: user.companyId },
+    orderBy: [{ name: "asc" }]
   });
 
   return (
@@ -40,6 +44,23 @@ export default async function NewRequestPage() {
               phone: item.transporter.primaryPhone,
               baseCity: item.transporter.baseCity,
               trustRating: item.trustRating
+            }))}
+            consignees={consignees.map((consignee) => ({
+              id: consignee.id,
+              name: consignee.name,
+              city: consignee.city,
+              state: consignee.state ?? "",
+              pincode: consignee.pincode ?? "",
+              address: [
+                consignee.addressLine1,
+                consignee.addressLine2,
+                consignee.addressLine3,
+                consignee.city,
+                consignee.pincode,
+                consignee.state
+              ]
+                .filter(Boolean)
+                .join(", ")
             }))}
           />
         </section>

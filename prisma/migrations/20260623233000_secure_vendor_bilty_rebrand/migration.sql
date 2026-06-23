@@ -1,0 +1,5 @@
+ALTER TYPE "ShipmentStatus" ADD VALUE IF NOT EXISTS 'BILTY_UPLOADED';
+
+ALTER TABLE "ShipmentDeliveryStop"
+  ADD COLUMN IF NOT EXISTS "biltyDocumentUrl" TEXT,
+  ADD COLUMN IF NOT EXISTS "biltyUploadedAt" TIMESTAMP(3);

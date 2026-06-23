@@ -1,0 +1,5 @@
+ALTER TABLE "Quote"
+ALTER COLUMN "truckType" DROP NOT NULL,
+ALTER COLUMN "availabilityDate" DROP NOT NULL,
+ALTER COLUMN "estimatedTransitDays" DROP NOT NULL,
+ALTER COLUMN "paymentTerms" DROP NOT NULL;

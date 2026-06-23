@@ -1,43 +1,11 @@
 "use server";
 
-import { execFile } from "node:child_process";
-import path from "node:path";
-import { promisify } from "node:util";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildQuoteRequestMessage } from "@/lib/quote-message";
-
-const execFileAsync = promisify(execFile);
-
-function parseJsonOutput(value: string) {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return { raw: value };
-  }
-}
-
-function openclawInvocation(args: string[]) {
-  if (process.env.OPENCLAW_CLI_PATH) {
-    return {
-      command: process.env.OPENCLAW_CLI_PATH,
-      args
-    };
-  }
-
-  if (process.platform === "win32") {
-    return {
-      command: "node",
-      args: [path.join(process.env.APPDATA ?? "", "npm", "node_modules", "openclaw", "openclaw.mjs"), ...args]
-    };
-  }
-
-  return {
-    command: "openclaw",
-    args
-  };
-}
+import { formatRouteLabel, formatTransporterRoute, parseRouteStops } from "@/lib/route-stops";
+import { vendorQuoteUrl } from "@/lib/vendor-links";
 
 export async function sendQuoteRequest(formData: FormData) {
   const user = await requireUser();
@@ -47,6 +15,16 @@ export async function sendQuoteRequest(formData: FormData) {
     return;
   }
 
+  await sendQuoteRequestNotification(quoteRequestId, user);
+
+  revalidatePath("/");
+  revalidatePath("/requests");
+}
+
+export async function sendQuoteRequestNotification(
+  quoteRequestId: string,
+  user: Awaited<ReturnType<typeof requireUser>>
+) {
   const quoteRequest = await prisma.quoteRequest.findFirst({
     where: {
       id: quoteRequestId,
@@ -67,6 +45,12 @@ export async function sendQuoteRequest(formData: FormData) {
     return;
   }
 
+  const routeStops = parseRouteStops(
+    quoteRequest.request.routeStops,
+    quoteRequest.request.pickupCity,
+    quoteRequest.request.dropCity
+  );
+
   const message = buildQuoteRequestMessage({
     companyName: quoteRequest.request.company.name,
     requestNumber: quoteRequest.request.requestNumber,
@@ -81,42 +65,47 @@ export async function sendQuoteRequest(formData: FormData) {
     dropCity: quoteRequest.request.dropCity,
     dropState: quoteRequest.request.dropState,
     dropPincode: quoteRequest.request.dropPincode,
+    routeLabel: formatRouteLabel(routeStops),
+    routeSummary: formatTransporterRoute(routeStops),
     material: quoteRequest.request.material,
     quantity: quoteRequest.request.quantity,
     truckRequirement: quoteRequest.request.truckRequirement,
     pickupDate: quoteRequest.request.pickupDate,
     targetDeliveryDate: quoteRequest.request.targetDeliveryDate,
-    notes: quoteRequest.request.notes
+    notes: quoteRequest.request.notes,
+    quoteUrl: vendorQuoteUrl(quoteRequest.accessToken)
+  });
+
+  await prisma.auditEvent.create({
+    data: {
+      companyId: user.companyId,
+      requestId: quoteRequest.requestId,
+      actorType: "company_user",
+      actorName: user.name,
+      action: "quote_broadcast.attempted",
+      details: {
+        channel: "whatsapp",
+        transporter: quoteRequest.transporter.name,
+        primaryPhone: quoteRequest.transporter.primaryPhone,
+        previousStatus: quoteRequest.status
+      }
+    }
   });
 
   try {
-    const invocation = openclawInvocation([
-        "message",
-        "send",
-        "--channel",
-        "whatsapp",
-        "--target",
-        quoteRequest.transporter.primaryPhone,
-        "--message",
-        message,
-        "--json"
-      ]);
-    const { stdout } = await execFileAsync(
-      invocation.command,
-      invocation.args,
-      {
-        timeout: 30000,
-        windowsHide: true,
-        maxBuffer: 1024 * 1024
-      }
-    );
+    const { sendWhatsAppMessage } = await import("@/lib/openclaw-whatsapp");
+    const cliResult = await sendWhatsAppMessage(quoteRequest.transporter.primaryPhone, message);
+    const deliveredAt = new Date();
 
     await prisma.$transaction([
       prisma.quoteRequest.update({
         where: { id: quoteRequest.id },
         data: {
-          status: "SENT",
-          sentAt: new Date(),
+          status: "DELIVERED",
+          sentAt: deliveredAt,
+          deliveredAt,
+          failedAt: null,
+          lastError: null,
           message
         }
       }),
@@ -132,16 +121,36 @@ export async function sendQuoteRequest(formData: FormData) {
             transporter: quoteRequest.transporter.name,
             primaryPhone: quoteRequest.transporter.primaryPhone,
             previousStatus: quoteRequest.status,
-            cliResult: stdout ? parseJsonOutput(stdout) : null
+            cliResult
+          }
+        }
+      }),
+      prisma.auditEvent.create({
+        data: {
+          companyId: user.companyId,
+          requestId: quoteRequest.requestId,
+          actorType: "system",
+          actorName: "Garud WhatsApp Sender",
+          action: "quote_broadcast.delivered",
+          details: {
+            channel: "whatsapp",
+            transporter: quoteRequest.transporter.name,
+            primaryPhone: quoteRequest.transporter.primaryPhone,
+            deliveredAt: deliveredAt.toISOString()
           }
         }
       })
     ]);
   } catch (error) {
+    const messageText = error instanceof Error ? error.message : String(error);
     await prisma.$transaction([
       prisma.quoteRequest.update({
         where: { id: quoteRequest.id },
-        data: { status: "FAILED" }
+        data: {
+          status: "FAILED",
+          failedAt: new Date(),
+          lastError: messageText
+        }
       }),
       prisma.auditEvent.create({
         data: {
@@ -154,12 +163,10 @@ export async function sendQuoteRequest(formData: FormData) {
             channel: "whatsapp",
             transporter: quoteRequest.transporter.name,
             primaryPhone: quoteRequest.transporter.primaryPhone,
-            error: error instanceof Error ? error.message : String(error)
+            error: messageText
           }
         }
       })
     ]);
   }
-
-  revalidatePath("/");
 }

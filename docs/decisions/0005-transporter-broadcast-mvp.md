@@ -2,6 +2,8 @@
 
 Date: 2026-06-15
 
+Status: Superseded for vendor response workflow by [0006 - Vendor Quote Portal](0006-vendor-quote-portal.md). The selected-transporter `QuoteRequest` preparation still applies, but WhatsApp is now treated as a notification channel for a secure vendor quote page rather than the primary quote-capture surface.
+
 ## Context
 
 Company users need to create transport requests quickly from mobile and share them with known transporters. Transporters will usually interact through WhatsApp, but actual outbound WhatsApp sending must be controlled and auditable.

@@ -12,6 +12,7 @@ export type LoginState = {
 export async function login(_state: LoginState, formData: FormData): Promise<LoginState> {
   const loginId = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const remember = formData.get("remember") === "on";
 
   if (!loginId || !password) {
     return { error: "User and password are required." };
@@ -37,7 +38,7 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
     where: { id: user.id },
     data: { lastLoginAt: new Date() }
   });
-  await setSession(user.id);
+  await setSession(user.id, remember);
   redirect("/");
 }
 

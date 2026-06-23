@@ -41,39 +41,83 @@ enum QuoteStatus {
 
 enum ShipmentStatus {
   PLANNED
+  ORDER_CONFIRMED
+  DRIVER_DETAILS_SUBMITTED
+  ADMIN_APPROVAL_REQUIRED
+  DRIVER_DETAILS_APPROVED
+  LOADING_IN_PROCESS
+  LOADING_POINT_COMPLETED
+  FINAL_WEIGHT_SLIP_UPLOADED
   PICKED_UP
+  WEIGHT_SLIP_UPLOADED
   IN_TRANSIT
+  BILTY_UPLOADED
+  POD_UPLOADED
+  POD_APPROVED
+  ALL_DELIVERIES_COMPLETED
   DELIVERED
+  DELIVERY_APPROVED
+  FINAL_DELIVERY_APPROVED
+  INVOICE_SUBMITTED
+  INVOICE_VERIFIED
+  PAYMENT_PROCESSED
+  PAYMENT_COMPLETED
+  ORDER_CLOSED
   INVOICED
 }
 
 model Company {
-  id           String        @id @default(cuid())
-  name         String
-  slug         String        @unique
-  city         String
-  state        String
-  country      String        @default("India")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  users        CompanyUser[]
-  transporters CompanyTransporter[]
-  requests     TransportRequest[]
-  auditEvents  AuditEvent[]
+  id              String                  @id @default(cuid())
+  name            String
+  slug            String                  @unique
+  city            String
+  state           String
+  country         String                  @default("India")
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  users           CompanyUser[]
+  transporters    CompanyTransporter[]
+  consignees      Consignee[]
+  requests        TransportRequest[]
+  auditEvents     AuditEvent[]
+  whatsappSetting CompanyWhatsAppSetting?
+}
+
+model CompanyWhatsAppSetting {
+  id                     String    @id @default(cuid())
+  companyId              String    @unique
+  provider               String    @default("OPENCLAW")
+  activeProvider         String    @default("OPENCLAW")
+  senderNumber           String?
+  openclawAccountId      String?
+  baileysSessionName     String?
+  baileysEnabled         Boolean   @default(false)
+  testRecipientNumber    String?
+  lastTestSentAt         DateTime?
+  lastTestStatus         String?
+  lastTestError          String?
+  baileysConfirmedAt     DateTime?
+  baileysConfirmedByName String?
+  notes                  String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  company                Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, provider])
 }
 
 model CompanyUser {
-  id           String          @id @default(cuid())
+  id           String             @id @default(cuid())
   companyId    String
   name         String
   email        String
   role         CompanyUserRole
-  passwordHash String          @default("")
-  isActive     Boolean         @default(true)
+  passwordHash String             @default("")
+  isActive     Boolean            @default(true)
   lastLoginAt  DateTime?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @default(now()) @updatedAt
-  company      Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now()) @updatedAt
+  company      Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   requests     TransportRequest[] @relation("RequestedBy")
   approvals    TransportRequest[] @relation("ApprovedBy")
 
@@ -82,84 +126,145 @@ model CompanyUser {
 }
 
 model Transporter {
-  id           String        @id @default(cuid())
-  name         String
-  primaryPhone String        @unique
-  email        String?
-  baseCity     String
-  baseState    String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  companies    CompanyTransporter[]
+  id            String               @id @default(cuid())
+  name          String
+  primaryPhone  String               @unique
+  email         String?
+  gstin         String?
+  baseCity      String
+  baseState     String
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  companies     CompanyTransporter[]
+  users         VendorUser[]
   quoteRequests QuoteRequest[]
-  quotes       Quote[]
-  shipments    Shipment[]
+  quotes        Quote[]
+  shipments     Shipment[]
+}
+
+model VendorUser {
+  id            String      @id @default(cuid())
+  transporterId String
+  name          String
+  email         String?
+  phone         String?
+  passwordHash  String
+  isActive      Boolean     @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  transporter   Transporter @relation(fields: [transporterId], references: [id], onDelete: Cascade)
+
+  @@unique([transporterId, email])
+  @@unique([transporterId, phone])
+  @@index([email])
+  @@index([phone])
+  @@index([transporterId])
 }
 
 model CompanyTransporter {
-  id            String      @id @default(cuid())
-  companyId     String
-  transporterId String
-  displayName   String
-  trustRating   Int         @default(3)
-  notes         String?
-  createdAt     DateTime    @default(now())
-  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  transporter   Transporter @relation(fields: [transporterId], references: [id], onDelete: Cascade)
+  id                String      @id @default(cuid())
+  companyId         String
+  transporterId     String
+  displayName       String
+  trustRating       Int         @default(3)
+  notes             String?
+  isBlacklisted     Boolean     @default(false)
+  blacklistedAt     DateTime?
+  blacklistedByName String?
+  createdAt         DateTime    @default(now())
+  company           Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  transporter       Transporter @relation(fields: [transporterId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, transporterId])
   @@index([companyId])
   @@index([transporterId])
 }
 
+model Consignee {
+  id            String   @id @default(cuid())
+  companyId     String
+  name          String
+  shortName     String?
+  addressLine1  String?
+  addressLine2  String?
+  addressLine3  String?
+  city          String
+  pincode       String?
+  email         String?
+  contactPerson String?
+  mobile        String?
+  gstin         String?
+  state         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, name])
+  @@index([companyId, city])
+}
+
 model TransportRequest {
-  id              String        @id @default(cuid())
-  companyId       String
-  requestedById   String
-  approvedById    String?
-  requestNumber   String
-  title           String
-  loadType        LoadType
-  status          RequestStatus @default(DRAFT)
-  pickupCity      String
-  pickupState     String
-  pickupPincode   String?
-  dropCity        String
-  dropState       String
-  dropPincode     String?
-  material        String
-  quantity        String
-  truckRequirement String
-  pickupDate      DateTime
+  id                 String         @id @default(cuid())
+  companyId          String
+  requestedById      String
+  approvedById       String?
+  requestNumber      String
+  title              String
+  loadType           LoadType
+  status             RequestStatus  @default(DRAFT)
+  pickupCity         String
+  pickupState        String
+  pickupPincode      String?
+  dropCity           String
+  dropState          String
+  dropPincode        String?
+  routeStops         Json?
+  material           String
+  quantity           String
+  truckRequirement   String
+  pickupDate         DateTime
+  biddingDeadline    DateTime?
   targetDeliveryDate DateTime?
-  notes           String?
-  aiSummary       String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  requestedBy     CompanyUser   @relation("RequestedBy", fields: [requestedById], references: [id])
-  approvedBy      CompanyUser?  @relation("ApprovedBy", fields: [approvedById], references: [id])
-  quotes          Quote[]
-  quoteRequests   QuoteRequest[]
-  shipment        Shipment?
-  auditEvents     AuditEvent[]
+  notes              String?
+  aiSummary          String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  company            Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy        CompanyUser    @relation("RequestedBy", fields: [requestedById], references: [id])
+  approvedBy         CompanyUser?   @relation("ApprovedBy", fields: [approvedById], references: [id])
+  quotes             Quote[]
+  quoteRequests      QuoteRequest[]
+  shipment           Shipment?
+  auditEvents        AuditEvent[]
 
   @@unique([companyId, requestNumber])
   @@index([companyId, status])
 }
 
 model QuoteRequest {
-  id            String           @id @default(cuid())
-  companyId     String
-  requestId     String
-  transporterId String
-  channel       String           @default("WHATSAPP")
-  status        String           @default("READY")
-  message       String
-  sentAt        DateTime?
-  createdAt     DateTime         @default(now())
-  request       TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  transporter   Transporter      @relation(fields: [transporterId], references: [id])
+  id                     String           @id @default(cuid())
+  companyId              String
+  requestId              String
+  transporterId          String
+  accessToken            String           @unique @default(uuid())
+  channel                String           @default("WHATSAPP")
+  status                 String           @default("READY")
+  message                String
+  question               String?
+  questionAt             DateTime?
+  questionAnswer         String?
+  questionAnsweredAt     DateTime?
+  questionAnsweredByName String?
+  finalQuoteId           String?
+  sentAt                 DateTime?
+  deliveredAt            DateTime?
+  failedAt               DateTime?
+  lastError              String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @default(now()) @updatedAt
+  request                TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter            Transporter      @relation(fields: [transporterId], references: [id])
 
   @@unique([requestId, transporterId])
   @@index([companyId, requestId])
@@ -167,61 +272,147 @@ model QuoteRequest {
 }
 
 model Quote {
-  id                  String          @id @default(cuid())
-  companyId           String
-  requestId           String
-  transporterId       String
-  amountPaise         Int
-  currency            String          @default("INR")
-  truckType           String
-  availabilityDate    DateTime
-  estimatedTransitDays Int
-  paymentTerms        String
-  status              QuoteStatus     @default(RECEIVED)
-  receivedVia         String
-  notes               String?
-  aiExtracted         Boolean         @default(false)
-  createdAt           DateTime        @default(now())
-  request             TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  transporter         Transporter     @relation(fields: [transporterId], references: [id])
+  id                   String           @id @default(cuid())
+  companyId            String
+  requestId            String
+  transporterId        String
+  amountPaise          Int
+  currency             String           @default("INR")
+  truckType            String?
+  availabilityDate     DateTime?
+  estimatedTransitDays Int?
+  paymentTerms         String?
+  status               QuoteStatus      @default(RECEIVED)
+  receivedVia          String
+  notes                String?
+  aiExtracted          Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  request              TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter          Transporter      @relation(fields: [transporterId], references: [id])
 
   @@index([companyId, requestId])
   @@index([transporterId])
 }
 
 model Shipment {
-  id               String         @id @default(cuid())
-  companyId        String
-  requestId        String         @unique
-  transporterId    String
-  status           ShipmentStatus @default(PLANNED)
-  vehicleNumber    String?
-  driverName       String?
-  driverPhone      String?
-  pickupAt         DateTime?
-  deliveredAt      DateTime?
-  invoiceNumber    String?
-  invoiceAmountPaise Int?
-  podDocumentUrl   String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  request          TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  transporter      Transporter    @relation(fields: [transporterId], references: [id])
+  id                          String                 @id @default(cuid())
+  companyId                   String
+  requestId                   String                 @unique
+  transporterId               String
+  status                      ShipmentStatus         @default(PLANNED)
+  vehicleNumber               String?
+  driverName                  String?
+  driverPhone                 String?
+  driverLicenseDocumentUrl    String?
+  vehicleRcDocumentUrl        String?
+  truckImageUrl               String?
+  driverDetailsSubmittedAt    DateTime?
+  driverDetailsApprovedAt     DateTime?
+  driverDetailsApprovedByName String?
+  pickupAt                    DateTime?
+  materialPickedUpAt          DateTime?
+  deliveredAt                 DateTime?
+  invoiceNumber               String?
+  invoiceAmountPaise          Int?
+  invoiceDocumentUrl          String?
+  invoiceSubmittedAt          DateTime?
+  invoiceVerifiedAt           DateTime?
+  invoiceVerifiedByName       String?
+  paymentProcessedAt          DateTime?
+  paymentCompletedAt          DateTime?
+  closedAt                    DateTime?
+  weightSlipDocumentUrl       String?
+  weightSlipUploadedAt        DateTime?
+  podDocumentUrl              String?
+  deliveryApprovedAt          DateTime?
+  deliveryApprovedByName      String?
+  finalDeliveryApprovedAt     DateTime?
+  finalDeliveryApprovedByName String?
+  loadingStartedAt            DateTime?
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+  request                     TransportRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  transporter                 Transporter            @relation(fields: [transporterId], references: [id])
+  loadingPoints               ShipmentLoadingPoint[]
+  deliveryStops               ShipmentDeliveryStop[]
+  notifications               Notification[]
 
   @@index([companyId, status])
 }
 
+model ShipmentLoadingPoint {
+  id            String    @id @default(cuid())
+  shipmentId    String
+  pointIndex    Int
+  label         String?
+  city          String
+  pincode       String?
+  address       String?
+  isFinal       Boolean   @default(false)
+  weightSlipUrl String?
+  uploadedAt    DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  shipment      Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@unique([shipmentId, pointIndex])
+  @@index([shipmentId])
+}
+
+model ShipmentDeliveryStop {
+  id                String    @id @default(cuid())
+  shipmentId        String
+  stopIndex         Int
+  consigneeName     String?
+  city              String
+  pincode           String?
+  address           String?
+  podDocumentUrl    String?
+  podUploadedAt     DateTime?
+  biltyDocumentUrl  String?
+  biltyUploadedAt   DateTime?
+  podApprovedAt     DateTime?
+  podApprovedByName String?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  shipment          Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@unique([shipmentId, stopIndex])
+  @@index([shipmentId])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  companyId     String
+  requestId     String?
+  shipmentId    String?
+  transporterId String?
+  recipientType String
+  title         String
+  body          String
+  action        String
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  shipment      Shipment? @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, recipientType, createdAt])
+  @@index([shipmentId])
+  @@index([transporterId, createdAt])
+}
+
 model AuditEvent {
-  id          String    @id @default(cuid())
-  companyId   String
-  requestId   String?
-  actorType   String
-  actorName   String
-  action      String
-  details     Json
-  createdAt   DateTime  @default(now())
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  request     TransportRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  id        String            @id @default(cuid())
+  companyId String
+  requestId String?
+  actorType String
+  actorName String
+  action    String
+  details   Json
+  createdAt DateTime          @default(now())
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  request   TransportRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
 
   @@index([companyId, createdAt])
   @@index([requestId])

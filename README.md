@@ -4,21 +4,22 @@ This repository contains the product notes, requirements, architecture decisions
 
 ## Current Goal
 
-Build a SaaS application that automates transport procurement and management for the first customer, Marudara Polypack in Jodhpur, then generalize the validated workflows into a scalable product.
+Build a SaaS application that automates transport procurement and trip management for Marudhara Group in Jodhpur, then generalize the validated workflows into a scalable product.
 
 The first release should focus on:
 
 - Capturing transport requirements.
 - Sharing requirements with transport providers.
-- Collecting provider quotes.
+- Collecting provider quotes through a mobile-friendly vendor response page.
 - Supporting quote comparison and approval.
-- Tracking the selected provider and load execution.
+- Sending order confirmation to the selected vendor.
+- Tracking the selected provider, truck/driver details, loading, transit, delivery documents, invoice, and payment.
 - Storing invoices and records.
 - Making the process transparent and auditable.
 
 ## First Customer
 
-- Customer: Marudara Polypack
+- Customer: Marudhara Group
 - Location: Jodhpur, Rajasthan, India
 - Current process: mostly manual, WhatsApp-based coordination with multiple transport providers.
 
@@ -41,8 +42,9 @@ The MVP should be an AI-first, tenant-isolated SaaS application with a shared tr
 - Company-side data is isolated by tenant/company.
 - Transporter identity can be global across the platform.
 - Company-to-transporter relationships are company-specific.
-- Transporters can interact through WhatsApp first, with web quote links/forms for richer input.
-- WhatsApp, web UI, and later email should feed the same core workflow and database.
+- Transporters receive secure WhatsApp links for viewing only their own RFQs, asking questions, and submitting final quotes.
+- After approval, the selected transporter receives a secure shipment link to update truck, driver, delivery Bilty/POD, and invoice details through the vendor portal.
+- WhatsApp, email, and web UI should feed the same core workflow and database.
 - AI agents should parse requirements, ask clarifying questions, collect and normalize quotes, compare options, recommend approvals, follow up on execution, and summarize audit trails.
 - High-impact business actions such as quote approval, awarding loads, and financial record changes should require human confirmation in the MVP.
 - The core workflow must also work without AI: manual request creation, quote entry, comparison, approval, shipment tracking, documents, and audit.
@@ -55,6 +57,8 @@ See:
 - [docs/decisions/0003-ai-optional-core-and-mcp.md](docs/decisions/0003-ai-optional-core-and-mcp.md)
 - [docs/decisions/0004-mvp-technology-stack.md](docs/decisions/0004-mvp-technology-stack.md)
 - [docs/decisions/0005-transporter-broadcast-mvp.md](docs/decisions/0005-transporter-broadcast-mvp.md)
+- [docs/decisions/0006-vendor-quote-portal.md](docs/decisions/0006-vendor-quote-portal.md)
+- [docs/decisions/0007-secure-vendor-links-and-production-run.md](docs/decisions/0007-secure-vendor-links-and-production-run.md)
 
 ## Local Setup
 
@@ -73,17 +77,28 @@ pnpm install
 pnpm db:migrate
 pnpm db:seed
 pnpm dev
+pnpm --filter @tms/web build
+pnpm --filter @tms/web start -p 3001
 ```
 
-The first MVP screen is a Marudara Polypack transport desk with seeded company users only. Transport vendors and transport requests should now be entered with real data from the app.
+The first MVP screen is Marudhara Trip Management with seeded company users only. Transport vendors and transport requests should now be entered with real data from the app.
 
 The public development app requires login. Seeded users are authorized company users only, and admin users can manage access from `/admin/users`.
 
-Admin users can add real transport vendors from `/admin/vendors`. Each vendor captures a name, WhatsApp number, base city/state, optional email, and notes. These vendors appear on the request form for quote-broadcast preparation.
+Admin users can add real transport vendors from `/admin/vendors`. Each vendor captures a name, WhatsApp number, base city/state, optional email, login password, and notes. These vendors appear on the request form for quote notification preparation.
 
-Authorized users can create transport requests from `/requests/new`. The intake form is mobile-first, defaults request dates for quick entry, asks for city and pincode instead of state, and lets the user select known transporters for a prepared WhatsApp quote broadcast.
+Authorized users can create transport requests from `/requests/new`. The intake form is mobile-first, defaults request dates for quick entry, asks for city and pincode instead of state, and lets the user select known transporters for quote notifications.
 
-New requests are stored with a request number, `OPEN` status, an audit event, optional pincode fields, and `QuoteRequest` records for selected transporters. These records prepare the WhatsApp broadcast list; actual outbound WhatsApp sending is a later explicit action.
+New requests are stored with a request number, `OPEN` status, an audit event, optional pincode fields, and `QuoteRequest` records for selected transporters. These records prepare WhatsApp notifications and secure token quote links. Vendors open `/vendor/quote/[token]` directly from WhatsApp to view details, ask questions, and submit final quotes. After approval, the selected vendor uses `/vendor/order/[token]` to update truck/driver details, upload mandatory Bilty and POD/GRN delivery documents, and submit invoices from mobile. Weight slips are admin-only documents and are not visible to vendors.
+
+For the shared tunnel, run the app in production mode after building:
+
+```powershell
+pnpm --filter @tms/web build
+pnpm --filter @tms/web start -p 3001
+```
+
+Avoid exposing `next dev` through the tunnel because its HMR/dev compilation traffic can grow memory and crash the local server.
 
 ## Collaboration
 

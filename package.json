@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.6.0",
   "scripts": {
     "dev": "pnpm --filter @tms/web dev",
+    "start": "pnpm --filter @tms/web start",
     "build": "pnpm --filter @tms/web build",
     "lint": "pnpm --filter @tms/web lint",
     "typecheck": "pnpm --filter @tms/web typecheck",

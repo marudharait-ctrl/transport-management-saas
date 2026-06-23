@@ -5,5 +5,11 @@ dist/
 coverage/
 .env
 .env.local
+.baileys-sessions/
+apps/web/.baileys-sessions/
 *.log
 *.tsbuildinfo
+memory/
+test-results/
+apps/web/test-results/
+apps/web/public/uploads/
